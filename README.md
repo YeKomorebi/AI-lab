@@ -123,6 +123,14 @@ colleague-skill/
 
 ---
 
+## 致谢
+
+本项目基于 [titanwings/colleague-skill](https://github.com/titanwings/colleague-skill)（dot-skill）构建。
+
+原项目提供了四位 AI 成员的完整 Skill 文件（Persona + Work 双层架构）以及 colleague-skill 的技术方案，本项目在此基础上实现了多房间协作 App、一键移交、成员管理和文件上传等功能。
+
+---
+
 <div align="center">
 
 **MIT License** © [YeKomorebi](https://github.com/YeKomorebi)
