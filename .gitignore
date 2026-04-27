@@ -8,6 +8,8 @@ skills/colleague/*
 !skills/colleague/example_tianyi/**
 !skills/colleague/example_jiaxiu/
 !skills/colleague/example_jiaxiu/**
+!skills/colleague/example_mingzhi/
+!skills/colleague/example_mingzhi/**
 
 # Python
 __pycache__/
@@ -16,6 +18,10 @@ __pycache__/
 .venv/
 venv/
 *.egg-info/
+
+# Env / secrets
+.env
+.env.*
 
 # Config with credentials
 ~/.colleague-skill/

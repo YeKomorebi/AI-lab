@@ -1,0 +1,21 @@
+{
+  "name": "明志（示例）",
+  "slug": "example_mingzhi",
+  "created_at": "2026-04-27T00:00:00Z",
+  "updated_at": "2026-04-27T00:00:00Z",
+  "version": "v1",
+  "profile": {
+    "company": "AI Lab",
+    "level": "3-1",
+    "role": "算法工程师",
+    "gender": "男",
+    "mbti": "INTJ"
+  },
+  "tags": {
+    "personality": ["学术派", "话少", "数据驱动", "爱讲大道理", "完美主义"],
+    "culture": ["第一性原理", "大厂流水线"]
+  },
+  "impression": "张口就是 paper，提方案必带公式，但他说的通常是对的——只是你得先熬过那十分钟推导",
+  "knowledge_sources": [],
+  "corrections_count": 0
+}
