@@ -291,22 +291,7 @@
 
   <div class="members">
     <div class="sb-lbl" style="padding:0 6px;margin-bottom:6px;">在线成员</div>
-    <div class="member-row" onclick="showRoom('product')">
-      <div class="m-av av-jx">佳<div class="m-dot"></div></div>
-      <div><div class="m-name">佳秀</div><div class="m-status">需求讨论室</div></div>
-    </div>
-    <div class="member-row" onclick="showRoom('review')">
-      <div class="m-av av-zs">张<div class="m-dot"></div></div>
-      <div><div class="m-name">张三</div><div class="m-status">技术评审室</div></div>
-    </div>
-    <div class="member-row" onclick="showRoom('review')">
-      <div class="m-av av-ty">天<div class="m-dot"></div></div>
-      <div><div class="m-name">天意</div><div class="m-status">安全扫描中</div></div>
-    </div>
-    <div class="member-row" onclick="showRoom('algo')">
-      <div class="m-av av-mz">明<div class="m-dot"></div></div>
-      <div><div class="m-name">明志</div><div class="m-status">算法实验室</div></div>
-    </div>
+    <div id="sidebar-members"></div>
   </div>
 
   <div class="sb-footer">
@@ -332,62 +317,15 @@
   <div class="page active" id="page-dashboard">
     <div class="stat-row">
       <div class="stat-card"><div class="stat-lbl">本周讨论</div><div class="stat-val">8</div><div class="stat-sub"><span class="stat-up">↑ 2</span> 较上周</div></div>
-      <div class="stat-card"><div class="stat-lbl">进行中任务</div><div class="stat-val">3</div><div class="stat-sub">张三 2 · 明志 1</div></div>
+      <div class="stat-card"><div class="stat-lbl">进行中任务</div><div class="stat-val">3</div><div class="stat-sub"><span class="stat-red">1 条紧急</span></div></div>
       <div class="stat-card"><div class="stat-lbl">待处理消息</div><div class="stat-val">5</div><div class="stat-sub"><span class="stat-red">1 条紧急</span></div></div>
     </div>
     <div class="sec-title">功能模块</div>
-    <div class="mod-grid">
-      <div class="mod-card" onclick="showRoom('product')">
-        <div class="mod-icon purple">💡</div>
-        <h3>需求讨论室</h3>
-        <p>描述你的想法，佳秀拆解优先级，张三估工期，明志评可行性，完成后一键移交技术评审。</p>
-        <div class="mod-meta">
-          <div class="avs"><div class="axs av-jx">佳</div><div class="axs av-zs">张</div><div class="axs av-mz">明</div></div>
-          <div class="mod-meta-txt">3 人驻场</div>
-        </div>
-      </div>
-      <div class="mod-card" onclick="showRoom('review')">
-        <div class="mod-icon blue">🔍</div>
-        <h3>技术评审室</h3>
-        <p>提交方案或代码，张三、天意、明志并行评审，输出结构化报告，完成后可移交算法实验室。</p>
-        <div class="mod-meta">
-          <div class="avs"><div class="axs av-zs">张</div><div class="axs av-ty">天</div><div class="axs av-mz">明</div></div>
-          <div class="mod-meta-txt">3 人驻场</div>
-        </div>
-      </div>
-      <div class="mod-card" onclick="showRoom('algo')">
-        <div class="mod-icon green">🧪</div>
-        <h3>算法实验室</h3>
-        <p>描述业务问题，明志设计实验方案，张三评工程实现，天意审数据安全。</p>
-        <div class="mod-meta">
-          <div class="avs"><div class="axs av-mz">明</div><div class="axs av-zs">张</div><div class="axs av-ty">天</div></div>
-          <div class="mod-meta-txt">3 人驻场</div>
-        </div>
-      </div>
-    </div>
+    <div class="mod-grid" id="dash-mod-grid"></div>
     <div class="sec-title">最近动态</div>
     <div class="act-card">
       <div class="act-hdr">今日消息</div>
-      <div class="act-item" onclick="showRoom('review')">
-        <div class="act-av av-zs">张</div>
-        <div><div class="act-txt"><b>张三</b> 完成了用户服务接口的 Code Review，发现 2 处 N+1 查询</div><div class="act-time">10 分钟前</div></div>
-        <div class="act-tag tag-r">评审</div>
-      </div>
-      <div class="act-item" onclick="showRoom('algo')">
-        <div class="act-av av-mz">明</div>
-        <div><div class="act-txt"><b>明志</b> 说：A/B 实验结果出来了，CTR 提升 2.3%，置信区间 [1.1%, 3.5%]，显著</div><div class="act-time">43 分钟前</div></div>
-        <div class="act-tag tag-a">算法</div>
-      </div>
-      <div class="act-item" onclick="showRoom('product')">
-        <div class="act-av av-jx">佳</div>
-        <div><div class="act-txt"><b>佳秀</b> 更新了招聘进展：本周面了 3 位算法工程师候选人</div><div class="act-time">1 小时前</div></div>
-        <div class="act-tag tag-p">需求</div>
-      </div>
-      <div class="act-item" onclick="showRoom('review')">
-        <div class="act-av av-ty">天</div>
-        <div><div class="act-txt"><b>天意</b> 提醒：推荐接口的安全评审还没过，有权限校验漏洞</div><div class="act-time">2 小时前</div></div>
-        <div class="act-tag tag-r">评审</div>
-      </div>
+      <div id="dash-activity"></div>
     </div>
   </div>
 
@@ -403,15 +341,13 @@
   <div class="chat-view" id="room-product">
     <div class="chat-main">
       <div class="chat-msgs" id="msgs-product">
-        <div class="msg-sys"><span>需求讨论室 · 佳秀、张三、明志 驻场</span></div>
+        <div class="msg-sys" id="msg-sys-product"><span>需求讨论室 · 加载中…</span></div>
       </div>
       <div class="chat-input">
         <div class="at-bar">
           <span class="at-lbl">@</span>
           <div class="at-chip active" data-key="" onclick="setAt(this,'product','')">全员</div>
-          <div class="at-chip" data-key="jiaxiu" onclick="setAt(this,'product','jiaxiu')"><div class="at-dot" style="background:#fb923c"></div>佳秀</div>
-          <div class="at-chip" data-key="zhangsan" onclick="setAt(this,'product','zhangsan')"><div class="at-dot" style="background:#818cf8"></div>张三</div>
-          <div class="at-chip" data-key="mingzhi" onclick="setAt(this,'product','mingzhi')"><div class="at-dot" style="background:#34d399"></div>明志</div>
+          <span id="at-chips-product"></span>
         </div>
         <div class="attach-bar" id="attach-product"></div>
         <div class="input-row">
@@ -425,9 +361,7 @@
     <div class="ctx-panel">
       <div class="ctx-sec">
         <div class="ctx-lbl">驻场成员</div>
-        <div class="ctx-member"><div class="ctx-av av-jx"><div class="ctx-online"></div>佳</div><div><div class="ctx-mname">佳秀</div><div class="ctx-mrole">业务/人员</div></div></div>
-        <div class="ctx-member"><div class="ctx-av av-zs"><div class="ctx-online"></div>张</div><div><div class="ctx-mname">张三</div><div class="ctx-mrole">后端技术</div></div></div>
-        <div class="ctx-member"><div class="ctx-av av-mz"><div class="ctx-online"></div>明</div><div><div class="ctx-mname">明志</div><div class="ctx-mrole">算法</div></div></div>
+        <div id="ctx-members-product"></div>
       </div>
       <div class="ctx-sec">
         <div class="ctx-lbl">流程进度</div>
@@ -448,15 +382,13 @@
   <div class="chat-view" id="room-review">
     <div class="chat-main">
       <div class="chat-msgs" id="msgs-review">
-        <div class="msg-sys"><span>技术评审室 · 张三、天意、明志 驻场</span></div>
+        <div class="msg-sys" id="msg-sys-review"><span>技术评审室 · 加载中…</span></div>
       </div>
       <div class="chat-input">
         <div class="at-bar">
           <span class="at-lbl">@</span>
           <div class="at-chip active" data-key="" onclick="setAt(this,'review','')">全员</div>
-          <div class="at-chip" data-key="zhangsan" onclick="setAt(this,'review','zhangsan')"><div class="at-dot" style="background:#818cf8"></div>张三</div>
-          <div class="at-chip" data-key="tianyi" onclick="setAt(this,'review','tianyi')"><div class="at-dot" style="background:#38bdf8"></div>天意</div>
-          <div class="at-chip" data-key="mingzhi" onclick="setAt(this,'review','mingzhi')"><div class="at-dot" style="background:#34d399"></div>明志</div>
+          <span id="at-chips-review"></span>
         </div>
         <div class="attach-bar" id="attach-review"></div>
         <div class="input-row">
@@ -470,9 +402,7 @@
     <div class="ctx-panel">
       <div class="ctx-sec">
         <div class="ctx-lbl">驻场成员</div>
-        <div class="ctx-member"><div class="ctx-av av-zs"><div class="ctx-online"></div>张</div><div><div class="ctx-mname">张三</div><div class="ctx-mrole">后端技术</div></div></div>
-        <div class="ctx-member"><div class="ctx-av av-ty"><div class="ctx-online"></div>天</div><div><div class="ctx-mname">天意</div><div class="ctx-mrole">安全</div></div></div>
-        <div class="ctx-member"><div class="ctx-av av-mz"><div class="ctx-online"></div>明</div><div><div class="ctx-mname">明志</div><div class="ctx-mrole">算法</div></div></div>
+        <div id="ctx-members-review"></div>
       </div>
       <div class="ctx-sec">
         <div class="ctx-lbl">流程进度</div>
@@ -493,15 +423,13 @@
   <div class="chat-view" id="room-algo">
     <div class="chat-main">
       <div class="chat-msgs" id="msgs-algo">
-        <div class="msg-sys"><span>算法实验室 · 明志、张三、天意 驻场</span></div>
+        <div class="msg-sys" id="msg-sys-algo"><span>算法实验室 · 加载中…</span></div>
       </div>
       <div class="chat-input">
         <div class="at-bar">
           <span class="at-lbl">@</span>
           <div class="at-chip active" data-key="" onclick="setAt(this,'algo','')">全员</div>
-          <div class="at-chip" data-key="mingzhi" onclick="setAt(this,'algo','mingzhi')"><div class="at-dot" style="background:#34d399"></div>明志</div>
-          <div class="at-chip" data-key="zhangsan" onclick="setAt(this,'algo','zhangsan')"><div class="at-dot" style="background:#818cf8"></div>张三</div>
-          <div class="at-chip" data-key="tianyi" onclick="setAt(this,'algo','tianyi')"><div class="at-dot" style="background:#38bdf8"></div>天意</div>
+          <span id="at-chips-algo"></span>
         </div>
         <div class="attach-bar" id="attach-algo"></div>
         <div class="input-row">
@@ -515,9 +443,7 @@
     <div class="ctx-panel">
       <div class="ctx-sec">
         <div class="ctx-lbl">驻场成员</div>
-        <div class="ctx-member"><div class="ctx-av av-mz"><div class="ctx-online"></div>明</div><div><div class="ctx-mname">明志</div><div class="ctx-mrole">算法主导</div></div></div>
-        <div class="ctx-member"><div class="ctx-av av-zs"><div class="ctx-online"></div>张</div><div><div class="ctx-mname">张三</div><div class="ctx-mrole">工程实现</div></div></div>
-        <div class="ctx-member"><div class="ctx-av av-ty"><div class="ctx-online"></div>天</div><div><div class="ctx-mname">天意</div><div class="ctx-mrole">数据安全</div></div></div>
+        <div id="ctx-members-algo"></div>
       </div>
       <div class="ctx-sec">
         <div class="ctx-lbl">实验进度</div>
@@ -581,6 +507,10 @@
             <label class="am-room-cb"><input type="checkbox" value="algo" /> 算法实验室</label>
           </div>
         </div>
+        <div class="am-field">
+          <div class="am-label">专属 API Key <span style="font-size:10px;color:var(--g400);font-weight:400">（留空则使用全局环境变量）</span></div>
+          <input class="am-input" id="am-apikey" type="password" placeholder="sk-ant-..." autocomplete="off" />
+        </div>
       </div>
       <div class="am-tab-panel" id="am-panel-persona">
         <div class="am-field">
@@ -612,20 +542,15 @@ let activeEs = null;
 // 每个房间的待发附件（上传完成后存储）
 const pendingAttachments = { product: [], review: [], algo: [] };
 
-// 角色 avatar class 映射
-const AV = {
-  zhangsan: "av-zs", tianyi: "av-ty",
-  jiaxiu:   "av-jx", mingzhi: "av-mz",
-};
-const NAMES = {
-  zhangsan:"张三", tianyi:"天意", jiaxiu:"佳秀", mingzhi:"明志"
-};
+// 角色 avatar 颜色映射（name → inline style 颜色），由 refreshSidebarMembers 维护
+const NAME_TO_COLOR = {};
+const NAMES = {};  // 动态填充，key → 显示名
 
 // ── 导航 ────────────────────────────────────────────────────────────────────
 const ROOM_META = {
-  product: { title:"需求讨论室", sub:"佳秀 · 张三 · 明志 驻场",    action:"💡 新需求" },
-  review:  { title:"技术评审室", sub:"张三 · 天意 · 明志 驻场",    action:"🔍 提交评审" },
-  algo:    { title:"算法实验室", sub:"明志 · 张三 · 天意 驻场",    action:"🧪 新实验" },
+  product: { title:"需求讨论室", sub:"", icon:"💡", color:"purple", action:"💡 新需求" },
+  review:  { title:"技术评审室", sub:"", icon:"🔍", color:"blue",   action:"🔍 提交评审" },
+  algo:    { title:"算法实验室", sub:"", icon:"🧪", color:"green",  action:"🧪 新实验" },
 };
 
 function showDashboard() {
@@ -876,11 +801,12 @@ async function clearRoom() {
 }
 
 // ── DOM 渲染辅助 ──────────────────────────────────────────────────────────────
-function avClass(agentKey) {
-  return AV[agentKey] || "av-gray";
+function avStyle(agentName) {
+  const col = NAME_TO_COLOR[agentName] || "#94a3b8";
+  return `background:linear-gradient(135deg,${col},${col}cc)`;
 }
-function agentInitial(agentKey) {
-  return (NAMES[agentKey] || agentKey)[0];
+function agentInitial(agentName) {
+  return (agentName || "?")[0];
 }
 
 function appendUserBubble(container, content, attachments) {
@@ -903,14 +829,13 @@ function appendUserBubble(container, content, attachments) {
   container.appendChild(div);
 }
 
-function appendAgentBubble(container, agentKey, content) {
-  const name = NAMES[agentKey] || agentKey;
+function appendAgentBubble(container, agentName, content) {
   const div = document.createElement("div");
   div.className = "msg-row";
   div.innerHTML = `
-    <div class="msg-av ${avClass(agentKey)}">${agentInitial(agentKey)}</div>
+    <div class="msg-av" style="${avStyle(agentName)}">${agentInitial(agentName)}</div>
     <div class="msg-body">
-      <div class="msg-meta"><span class="msg-sender">${name}</span><span>${timeNow()}</span></div>
+      <div class="msg-meta"><span class="msg-sender">${escHtml(agentName)}</span><span>${timeNow()}</span></div>
       <div class="msg-bubble">${escHtml(content)}</div>
     </div>`;
   container.appendChild(div);
@@ -919,8 +844,8 @@ function appendAgentBubble(container, agentKey, content) {
 function appendParallelBlock(container, batch) {
   const items = batch.map(m => `
     <div class="par-item">
-      <div class="msg-av ${avClass(m.agent)}" style="width:24px;height:24px;font-size:9px;flex-shrink:0;">${agentInitial(m.agent)}</div>
-      <div><div class="par-name">${NAMES[m.agent] || m.agent}</div><div class="par-text">${escHtml(m.content)}</div></div>
+      <div class="msg-av" style="${avStyle(m.agent)};width:24px;height:24px;font-size:9px;flex-shrink:0;">${agentInitial(m.agent)}</div>
+      <div><div class="par-name">${escHtml(m.agent)}</div><div class="par-text">${escHtml(m.content)}</div></div>
     </div>`).join("");
   const div = document.createElement("div");
   div.className = "msg-parallel";
@@ -928,12 +853,11 @@ function appendParallelBlock(container, batch) {
   container.appendChild(div);
 }
 
-function agentThinkingHTML(agentKey, role) {
-  const name = NAMES[agentKey] || agentKey;
+function agentThinkingHTML(agentName, role) {
   return `<div class="msg-row">
-    <div class="msg-av ${avClass(agentKey)}">${agentInitial(agentKey)}</div>
+    <div class="msg-av" style="${avStyle(agentName)}">${agentInitial(agentName)}</div>
     <div class="msg-body">
-      <div class="msg-meta"><span class="msg-sender">${name}</span><span>${role||""}</span></div>
+      <div class="msg-meta"><span class="msg-sender">${escHtml(agentName)}</span><span>${role||""}</span></div>
       <div class="msg-bubble"><div class="thinking"><span></span><span></span><span></span>&nbsp;思考中</div></div>
     </div>
   </div>`;
@@ -994,14 +918,16 @@ async function handleUpload(event, roomId) {
         continue;
       }
       const data = await res.json();
+      // 给每个附件分配唯一 id，避免删除时索引偏移
+      data._uid = Math.random().toString(36).slice(2);
       pendingAttachments[roomId].push(data);
 
-      const idx = pendingAttachments[roomId].length - 1;
       chip.className = "attach-chip" + (data.type === "image" ? " img-chip" : "");
+      chip.dataset.uid = data._uid;
       chip.innerHTML = `
         <span>${data.type === "image" ? "🖼" : "📄"}</span>
         <span class="attach-chip-name">${escHtml(data.filename)}</span>
-        <button class="attach-rm" onclick="removeAttachment('${roomId}',${idx},this.closest('.attach-chip'))">✕</button>`;
+        <button class="attach-rm" onclick="removeAttachment('${roomId}','${data._uid}',this.closest('.attach-chip'))">✕</button>`;
     } catch (e) {
       chip.innerHTML = `<span style="color:#ef4444">✗ ${escHtml(file.name)}: 网络错误</span>
         <button class="attach-rm" onclick="this.closest('.attach-chip').remove()">✕</button>`;
@@ -1009,14 +935,9 @@ async function handleUpload(event, roomId) {
   }
 }
 
-function removeAttachment(roomId, idx, chipEl) {
-  pendingAttachments[roomId].splice(idx, 1);
+function removeAttachment(roomId, uid, chipEl) {
+  pendingAttachments[roomId] = pendingAttachments[roomId].filter(a => a._uid !== uid);
   chipEl.remove();
-  // 重新绑定剩余 chip 的删除索引
-  const bar = document.getElementById("attach-" + roomId);
-  bar.querySelectorAll(".attach-rm").forEach((btn, i) => {
-    btn.onclick = () => removeAttachment(roomId, i, btn.closest(".attach-chip"));
-  });
 }
 
 function escHtml(s) {
@@ -1082,6 +1003,135 @@ async function loadMembers() {
   }
 }
 
+async function refreshSidebarMembers() {
+  const [agents, rooms] = await Promise.all([
+    fetch("/api/agents").then(r => r.json()),
+    fetch("/api/rooms").then(r => r.json()),
+  ]);
+  const roomMap = {};
+  for (const room of rooms) {
+    for (const key of room.members) {
+      if (!roomMap[key]) roomMap[key] = room;
+    }
+  }
+  const colors = { blue:"#6366f1", cyan:"#38bdf8", orange:"#fb923c", green:"#34d399", gray:"#94a3b8" };
+
+  // 更新 NAMES 和 NAME_TO_COLOR 字典供气泡显示用
+  for (const ag of agents) {
+    NAMES[ag.key] = ag.name;
+    NAME_TO_COLOR[ag.name] = colors[ag.color] || "#94a3b8";
+  }
+
+  // 侧边栏在线成员列表
+  const sb = document.getElementById("sidebar-members");
+  if (sb) {
+    sb.innerHTML = agents.map(ag => {
+      const room = roomMap[ag.key];
+      const col  = colors[ag.color] || "#94a3b8";
+      const ini  = (ag.name || ag.key)[0];
+      const onclick = room ? `showRoom('${room.id}')` : "";
+      return `<div class="member-row" ${onclick ? `onclick="${onclick}"` : ""} style="cursor:${onclick?'pointer':'default'}">
+        <div class="m-av" style="background:linear-gradient(135deg,${col},${col}aa)">${ini}<div class="m-dot"></div></div>
+        <div><div class="m-name">${escHtml(ag.name)}</div><div class="m-status">${room ? escHtml(room.name) : "未分配"}</div></div>
+      </div>`;
+    }).join("");
+  }
+
+  // 各房间右侧驻场成员面板 + @ 标签
+  for (const room of rooms) {
+    // 驻场成员面板
+    const ctxEl = document.getElementById(`ctx-members-${room.id}`);
+    if (ctxEl) {
+      ctxEl.innerHTML = room.members.map(key => {
+        const ag  = agents.find(a => a.key === key);
+        if (!ag) return "";
+        const col = colors[ag.color] || "#94a3b8";
+        const ini = (ag.name || key)[0];
+        return `<div class="ctx-member">
+          <div class="ctx-av" style="background:linear-gradient(135deg,${col},${col}aa)"><div class="ctx-online"></div>${ini}</div>
+          <div><div class="ctx-mname">${escHtml(ag.name)}</div><div class="ctx-mrole">${escHtml(ag.role)}</div></div>
+        </div>`;
+      }).join("");
+    }
+
+    // @ 标签
+    const chipsEl = document.getElementById(`at-chips-${room.id}`);
+    if (chipsEl) {
+      chipsEl.innerHTML = room.members.map(key => {
+        const ag  = agents.find(a => a.key === key);
+        if (!ag) return "";
+        const col = colors[ag.color] || "#94a3b8";
+        return `<div class="at-chip" data-key="${key}" onclick="setAt(this,'${room.id}','${key}')"><div class="at-dot" style="background:${col}"></div>${escHtml(ag.name)}</div>`;
+      }).join("");
+    }
+
+    // 聊天室顶部 msg-sys
+    const sysEl = document.getElementById(`msg-sys-${room.id}`);
+    if (sysEl) {
+      const names = room.members.map(key => {
+        const ag = agents.find(a => a.key === key);
+        return ag ? ag.name : key;
+      }).join("、");
+      sysEl.innerHTML = `<span>${escHtml(room.name)} · ${escHtml(names)} 驻场</span>`;
+    }
+
+    // ROOM_META sub
+    if (ROOM_META[room.id]) {
+      const names = room.members.map(key => {
+        const ag = agents.find(a => a.key === key);
+        return ag ? ag.name : key;
+      }).join(" · ");
+      ROOM_META[room.id].sub = names + " 驻场";
+    }
+  }
+
+  // Dashboard 功能模块卡片
+  const modGrid = document.getElementById("dash-mod-grid");
+  if (modGrid) {
+    const roomColors = { product:"purple", review:"blue", algo:"green" };
+    modGrid.innerHTML = rooms.map(room => {
+      const m = ROOM_META[room.id] || {};
+      const memberAvatars = room.members.map(key => {
+        const ag = agents.find(a => a.key === key);
+        if (!ag) return "";
+        const col = colors[ag.color] || "#94a3b8";
+        return `<div class="axs" style="background:linear-gradient(135deg,${col},${col}aa)">${(ag.name||key)[0]}</div>`;
+      }).join("");
+      return `<div class="mod-card" onclick="showRoom('${room.id}')">
+        <div class="mod-icon ${roomColors[room.id]||'blue'}">${m.icon||'💬'}</div>
+        <h3>${escHtml(room.name)}</h3>
+        <div class="mod-meta">
+          <div class="avs">${memberAvatars}</div>
+          <div class="mod-meta-txt">${room.members.length} 人驻场</div>
+        </div>
+      </div>`;
+    }).join("");
+  }
+
+  // Dashboard 今日消息（每个房间取一个不重复的成员）
+  const actEl = document.getElementById("dash-activity");
+  if (actEl && agents.length) {
+    const tagMap = { product:"<div class='act-tag tag-p'>需求</div>", review:"<div class='act-tag tag-r'>评审</div>", algo:"<div class='act-tag tag-a'>算法</div>" };
+    const usedKeys = new Set();
+    const items = rooms.map(room => {
+      // 优先取 lead，其次取该房间里还没用过的成员
+      const candidate = [room.lead, ...room.members].filter(Boolean).find(k => k && !usedKeys.has(k));
+      if (!candidate) return "";
+      usedKeys.add(candidate);
+      const ag = agents.find(a => a.key === candidate);
+      if (!ag) return "";
+      const col = colors[ag.color] || "#94a3b8";
+      const ini = (ag.name || candidate)[0];
+      return `<div class="act-item" onclick="showRoom('${room.id}')">
+        <div class="act-av" style="background:linear-gradient(135deg,${col},${col}aa)">${ini}</div>
+        <div><div class="act-txt"><b>${escHtml(ag.name)}</b> 在${escHtml(room.name)}等待新任务</div><div class="act-time">在线</div></div>
+        ${tagMap[room.id]||""}
+      </div>`;
+    }).join("");
+    actEl.innerHTML = items;
+  }
+}
+
 async function openEditModal(key) {
   _editingKey = key;
   document.getElementById("am-title").textContent = "编辑成员";
@@ -1096,6 +1146,7 @@ async function openEditModal(key) {
   document.getElementById("am-focus").value   = data.focus   || "";
   document.getElementById("am-persona").value = data.persona || "";
   document.getElementById("am-work").value    = data.work    || "";
+  document.getElementById("am-apikey").value  = data.api_key || "";
 
   const currentRooms = data.current_rooms || [];
   document.querySelectorAll("#am-rooms input[type=checkbox]").forEach(cb => {
@@ -1114,6 +1165,7 @@ function openCreateModal() {
   document.getElementById("am-focus").value   = "";
   document.getElementById("am-persona").value = "";
   document.getElementById("am-work").value    = "";
+  document.getElementById("am-apikey").value  = "";
   document.querySelectorAll("#am-rooms input[type=checkbox]").forEach(cb => cb.checked = false);
   document.getElementById("am-save").disabled = false;
   document.getElementById("am-save").textContent = "创建";
@@ -1141,6 +1193,7 @@ async function saveAgent() {
   const focus   = document.getElementById("am-focus").value.trim();
   const persona = document.getElementById("am-persona").value;
   const work    = document.getElementById("am-work").value;
+  const api_key = document.getElementById("am-apikey").value.trim();
   const rooms   = [...document.querySelectorAll("#am-rooms input[type=checkbox]")]
                     .filter(cb => cb.checked).map(cb => cb.value);
 
@@ -1156,24 +1209,27 @@ async function saveAgent() {
       res = await fetch(`/api/agents/${_editingKey}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, role, focus, persona, work, rooms }),
+        body: JSON.stringify({ name, role, focus, persona, work, rooms, api_key }),
       });
     } else {
       res = await fetch("/api/agents", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, role, focus, persona, work }),
+        body: JSON.stringify({ name, role, focus, persona, work, api_key }),
       });
     }
     if (!res.ok) { const e = await res.json(); throw new Error(e.detail || "请求失败"); }
     closeAgentModal();
     loadMembers();
+    refreshSidebarMembers();
   } catch (e) {
     alert("保存失败：" + e.message);
     btn.disabled = false;
     btn.textContent = _editingKey ? "保存" : "创建";
   }
 }
+
+refreshSidebarMembers();
 </script>
 </body>
 </html>

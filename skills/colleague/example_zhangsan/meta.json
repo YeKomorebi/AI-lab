@@ -1,8 +1,8 @@
 {
-  "name": "张三",
+  "name": "时神",
   "slug": "example_zhangsan",
   "created_at": "2026-03-30T00:00:00Z",
-  "updated_at": "2026-04-27T11:08:09.978039+00:00",
+  "updated_at": "2026-04-27T13:52:59.018149+00:00",
   "version": "v1",
   "profile": {
     "company": "字节跳动",
@@ -27,5 +27,5 @@
   "knowledge_sources": [],
   "corrections_count": 0,
   "role": "后端技术",
-  "focus": "代码质量"
+  "focus": "代码质量、接口设计、N+1 查询、事务边界、幂等性"
 }

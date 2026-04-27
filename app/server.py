@@ -34,6 +34,7 @@ from app.orchestrator import (
     room_chat,
     generate_transfer_summary,
     transfer_greeting,
+    _get_agent_info,
 )
 
 app = FastAPI(title="AI Lab 工作台")
@@ -69,6 +70,7 @@ class AgentCreateRequest(BaseModel):
     focus:   str = ""
     persona: str
     work:    str = ""
+    api_key: str = ""
 
 class AgentUpdateRequest(BaseModel):
     name:    str
@@ -77,6 +79,7 @@ class AgentUpdateRequest(BaseModel):
     persona: str
     work:    str = ""
     rooms:   list[str] = []
+    api_key: str = ""
 
 
 # ── 文件解析 ─────────────────────────────────────────────────────────────────
@@ -196,7 +199,8 @@ async def create_agent(req: AgentCreateRequest):
     if req.work:
         (skill_dir / "work.md").write_text(req.work, encoding="utf-8")
     meta = {"name": req.name, "slug": slug, "role": req.role,
-            "focus": req.focus, "created_at": datetime.now(timezone.utc).isoformat(), "custom": True}
+            "focus": req.focus, "api_key": req.api_key,
+            "created_at": datetime.now(timezone.utc).isoformat(), "custom": True}
     (skill_dir / "meta.json").write_text(
         json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8")
     return {"key": slug, "slug": slug, "name": req.name, "role": req.role,
@@ -219,7 +223,8 @@ async def get_agent_detail(key: str):
     meta_file = skill_dir / "meta.json"
     if not meta_file.exists():
         raise HTTPException(404, "meta.json 不存在")
-    meta = json.loads(meta_file.read_text(encoding="utf-8"))
+
+    meta  = json.loads(meta_file.read_text(encoding="utf-8"))
 
     persona_f = skill_dir / "persona.md"
     work_f    = skill_dir / "work.md"
@@ -227,18 +232,19 @@ async def get_agent_detail(key: str):
     work      = work_f.read_text(encoding="utf-8")    if work_f.exists()    else ""
 
     current_rooms = [r for r, cfg in ROOMS.items() if key in cfg["members"]]
+    agent_info = _get_agent_info(key)
 
-    agent_info = AGENTS_DICT.get(key)
     return {
-        "key":          key,
-        "slug":         meta.get("slug", key),
-        "name":         agent_info["name"] if agent_info else meta.get("name", key),
-        "role":         agent_info["role"] if agent_info else meta.get("role", ""),
-        "color":        agent_info.get("color", "gray") if agent_info else "gray",
-        "focus":        agent_info["focus"] if agent_info else meta.get("focus", ""),
-        "persona":      persona,
-        "work":         work,
+        "key":           key,
+        "slug":          agent_info["slug"],
+        "name":          agent_info["name"],
+        "role":          agent_info["role"],
+        "color":         agent_info["color"],
+        "focus":         agent_info["focus"],
+        "persona":       persona,
+        "work":          work,
         "current_rooms": current_rooms,
+        "api_key":       meta.get("api_key", ""),
     }
 
 
@@ -253,6 +259,7 @@ async def update_agent(key: str, req: AgentUpdateRequest):
     meta_file = skill_dir / "meta.json"
     meta = json.loads(meta_file.read_text(encoding="utf-8")) if meta_file.exists() else {}
     meta.update({"name": req.name, "role": req.role, "focus": req.focus,
+                 "api_key": req.api_key,
                  "updated_at": datetime.now(timezone.utc).isoformat()})
     meta_file.write_text(json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8")
 
@@ -315,7 +322,7 @@ async def clear_history(room_id: str):
 async def start_chat(room_id: str, req: ChatRequest):
     if room_id not in ROOMS:
         raise HTTPException(404, "未知房间")
-    if not req.message.strip():
+    if not req.message.strip() and not req.attachments:
         raise HTTPException(400, "消息不能为空")
 
     # 记录用户消息

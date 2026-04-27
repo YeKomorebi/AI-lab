@@ -8,6 +8,7 @@ orchestrator.py — 房间级 Agent 调度
 """
 
 import asyncio
+import json
 import os
 from pathlib import Path
 from typing import AsyncIterator
@@ -19,34 +20,34 @@ SKILLS_DIR = ROOT / "skills" / "colleague"
 BASE_URL = os.environ.get("ANTHROPIC_BASE_URL", "https://api.anthropic.com")
 
 # ── 角色字典 ──────────────────────────────────────────────────────────────────
+# 启动时从 meta.json 读取 name/role/focus，保证重启后与磁盘一致
 
-AGENTS = {
-    "zhangsan": {
-        "slug": "example_zhangsan", "name": "张三",
-        "role": "后端技术", "color": "blue",
-        "focus": "代码质量、接口设计、N+1 查询、事务边界、幂等性",
-    },
-    "tianyi": {
-        "slug": "example_tianyi", "name": "天意",
-        "role": "安全", "color": "cyan",
-        "focus": "输入校验、注入风险、权限控制、安全评审",
-    },
-    "jiaxiu": {
-        "slug": "example_jiaxiu", "name": "佳秀",
-        "role": "业务/人员", "color": "orange",
-        "focus": "业务影响、时间线、用户体验、跨团队协作",
-    },
-    "mingzhi": {
-        "slug": "example_mingzhi", "name": "明志",
-        "role": "算法", "color": "green",
-        "focus": "实验严谨性、指标定义、data leakage、training-serving skew",
-    },
-}
+def _init_agents() -> dict:
+    builtin = {
+        "zhangsan": {"slug": "example_zhangsan", "color": "blue"},
+        "tianyi":   {"slug": "example_tianyi",   "color": "cyan"},
+        "jiaxiu":   {"slug": "example_jiaxiu",   "color": "orange"},
+        "mingzhi":  {"slug": "example_mingzhi",  "color": "green"},
+    }
+    result = {}
+    for key, base in builtin.items():
+        meta_file = SKILLS_DIR / base["slug"] / "meta.json"
+        if meta_file.exists():
+            meta = json.loads(meta_file.read_text(encoding="utf-8"))
+        else:
+            meta = {}
+        result[key] = {
+            "slug":  base["slug"],
+            "name":  meta.get("name", key),
+            "role":  meta.get("role", ""),
+            "color": base["color"],
+            "focus": meta.get("focus", ""),
+        }
+    return result
+
+AGENTS: dict = _init_agents()
 
 # ── 房间配置 ──────────────────────────────────────────────────────────────────
-# members: 该房间的驻场成员（key → AGENTS key）
-# lead:    默认首先响应的角色（可为 None 表示全员并行）
-# can_transfer_to: 可以移交到哪些房间
 
 ROOMS = {
     "product": {
@@ -59,7 +60,7 @@ ROOMS = {
     "review": {
         "name":    "技术评审室",
         "members": ["zhangsan", "tianyi", "mingzhi"],
-        "lead":    None,   # 全员并行
+        "lead":    None,
         "can_transfer_to": ["algo"],
         "system_hint": "这是技术评审室，张三负责后端技术，天意负责安全，明志负责算法可行性。",
     },
@@ -72,7 +73,50 @@ ROOMS = {
     },
 }
 
-# ── Prompt 加载 ───────────────────────────────────────────────────────────────
+# ── Agent 信息查找（支持内置 + 自定义） ──────────────────────────────────────
+
+def _get_agent_info(key: str) -> dict:
+    """返回 agent 的运行时信息，内置从 AGENTS 取，自定义从 meta.json 读。"""
+    if key in AGENTS:
+        return AGENTS[key]
+    meta_file = SKILLS_DIR / key / "meta.json"
+    if meta_file.exists():
+        meta = json.loads(meta_file.read_text(encoding="utf-8"))
+        return {
+            "slug":  key,
+            "name":  meta.get("name", key),
+            "role":  meta.get("role", "自定义"),
+            "color": "gray",
+            "focus": meta.get("focus", ""),
+        }
+    return {"slug": key, "name": key, "role": "", "color": "gray", "focus": ""}
+
+
+def _get_slug(key: str) -> str:
+    """返回 agent 对应的 skill 目录名（slug）。"""
+    if key in AGENTS:
+        return AGENTS[key]["slug"]
+    return key   # 自定义成员 key == slug
+
+
+def _get_api_key(key: str) -> str | None:
+    """从 meta.json 读取 agent 专属 API Key，没有则返回 None（用全局环境变量）。"""
+    slug = _get_slug(key)
+    meta_file = SKILLS_DIR / slug / "meta.json"
+    if meta_file.exists():
+        meta = json.loads(meta_file.read_text(encoding="utf-8"))
+        v = meta.get("api_key", "").strip()
+        return v if v else None
+    return None
+
+
+def _make_client(key: str) -> anthropic.AsyncAnthropic:
+    """为指定 agent 创建 Anthropic client，优先使用其专属 API Key。"""
+    api_key = _get_api_key(key)
+    if api_key:
+        return anthropic.AsyncAnthropic(api_key=api_key, base_url=BASE_URL)
+    return anthropic.AsyncAnthropic(base_url=BASE_URL)
+
 
 def _load_system_prompt(slug: str) -> str:
     skill_dir = SKILLS_DIR / slug
@@ -87,18 +131,18 @@ def _load_system_prompt(slug: str) -> str:
 
 
 def _build_history_text(messages: list[dict]) -> str:
-    """把 session 消息历史拼成可读文本，供注入 system prompt。"""
     lines = []
-    for m in messages[-20:]:   # 最近 20 条，避免 context 太长
+    for m in messages[-20:]:
         speaker = m.get("agent") or m.get("role", "用户")
         lines.append(f"{speaker}: {m['content']}")
     return "\n".join(lines)
 
 
 def _make_system(agent_key: str, room_id: str, context_summary: str | None) -> str:
-    agent  = AGENTS[agent_key]
+    agent  = _get_agent_info(agent_key)
+    slug   = _get_slug(agent_key)
     room   = ROOMS[room_id]
-    base   = _load_system_prompt(agent["slug"])
+    base   = _load_system_prompt(slug)
     hint   = f"\n\n[当前场景] {room['system_hint']}"
     ctx    = ""
     if context_summary:
@@ -116,14 +160,12 @@ async def _call(
     user_msg: str,
     attachments: list[dict] | None = None,
 ) -> str:
-    # 把历史转成 messages 格式
     msgs = []
     for m in history[-12:]:
         role    = "user" if (m.get("role") == "user" or m.get("agent") is None) else "assistant"
         content = m["content"]
         msgs.append({"role": role, "content": content})
 
-    # 构建最后一条用户消息（支持多模态）
     if attachments:
         content_blocks: list = []
         for att in attachments:
@@ -169,38 +211,25 @@ async def room_chat(
     at_agent: str | None = None,
     attachments: list[dict] | None = None,
 ) -> AsyncIterator[dict]:
-    """
-    根据房间配置派发消息，yield SSE 事件。
-
-    事件类型：
-      agent_start  — 某角色开始回复
-      agent_done   — 某角色回复完毕，content 为完整文本
-      error        — 出错
-    """
-    room   = ROOMS.get(room_id)
+    room = ROOMS.get(room_id)
     if not room:
         yield {"type": "error", "content": f"未知房间: {room_id}"}
         return
 
-    client = anthropic.AsyncAnthropic(base_url=BASE_URL)
-
-    # 决定本次谁回复
     if at_agent and at_agent in room["members"]:
         responders = [at_agent]
     elif room["lead"] is None:
-        responders = room["members"]   # 全员并行
+        responders = list(room["members"])
     else:
-        # 默认：lead 先回，其他人视消息内容决定要不要补充
-        # 简化版：只让 lead 回复，除非消息里明确 @ 了别人
         responders = [room["lead"]]
 
     if room["lead"] is None:
-        # 全员并行（技术评审室默认模式）
-        yield {"type": "parallel_start", "agents": [AGENTS[k]["name"] for k in responders]}
+        yield {"type": "parallel_start", "agents": [_get_agent_info(k)["name"] for k in responders]}
 
         async def _one(key: str):
-            agent  = AGENTS[key]
+            agent  = _get_agent_info(key)
             system = _make_system(key, room_id, context_summary)
+            client = _make_client(key)
             yield {"type": "agent_start", "agent": agent["name"], "role": agent["role"]}
             text = await _call(client, model, system, history, user_message, attachments)
             yield {"type": "agent_done",  "agent": agent["name"], "role": agent["role"], "content": text}
@@ -211,17 +240,16 @@ async def room_chat(
             for ev in events:
                 yield ev
     else:
-        # 串行（lead 先，再看是否需要别人补充）
         for key in responders:
-            agent  = AGENTS[key]
+            agent  = _get_agent_info(key)
             system = _make_system(key, room_id, context_summary)
+            client = _make_client(key)
             yield {"type": "agent_start", "agent": agent["name"], "role": agent["role"]}
             text = await _call(client, model, system, history, user_message, attachments)
             yield {"type": "agent_done",  "agent": agent["name"], "role": agent["role"], "content": text}
 
 
 async def _collect(gen: AsyncIterator[dict]) -> list[dict]:
-    """把 async generator 收集成列表，用于并发 gather。"""
     items = []
     async for item in gen:
         items.append(item)
@@ -236,10 +264,6 @@ async def generate_transfer_summary(
     history: list[dict],
     model: str = "claude-sonnet-4-6",
 ) -> str:
-    """
-    用中立视角总结本次对话，生成移交摘要。
-    摘要会作为 context 注入目标房间的 system prompt。
-    """
     from_room = ROOMS[from_room_id]
     to_room   = ROOMS[to_room_id]
     history_text = _build_history_text(history)
@@ -281,16 +305,13 @@ async def transfer_greeting(
     summary: str,
     model: str = "claude-sonnet-4-6",
 ) -> AsyncIterator[dict]:
-    """
-    目标房间收到移交后，各成员读取摘要并主动发表初步意见。
-    """
-    room   = ROOMS[to_room_id]
-    client = anthropic.AsyncAnthropic(base_url=BASE_URL)
+    room = ROOMS[to_room_id]
 
     for key in room["members"]:
-        agent  = AGENTS[key]
+        agent  = _get_agent_info(key)
         system = _make_system(key, to_room_id, summary)
-        user   = f"你刚刚收到了一份来自上一个房间的移交摘要（已在你的背景信息里）。请结合你的专业视角，简短说一下你对这个任务的初步判断和你准备重点关注什么。不超过 3 句话。"
+        client = _make_client(key)
+        user   = "你刚刚收到了一份来自上一个房间的移交摘要（已在你的背景信息里）。请结合你的专业视角，简短说一下你对这个任务的初步判断和你准备重点关注什么。不超过 3 句话。"
 
         yield {"type": "agent_start", "agent": agent["name"], "role": agent["role"]}
         text = await _call(client, model, system, [], user)
@@ -304,7 +325,6 @@ async def run_review(
     model: str = "claude-sonnet-4-6",
     selected_agents: list | None = None,
 ) -> AsyncIterator[dict]:
-    """原有三阶段评审，保持不变。供技术评审室「发起三阶段评审」按钮使用。"""
     from app.orchestrator_review import run_review_phases
     async for ev in run_review_phases(material, model, selected_agents):
         yield ev
