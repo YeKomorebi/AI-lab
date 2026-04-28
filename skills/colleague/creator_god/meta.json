@@ -1,0 +1,7 @@
+{
+  "name": "造物主",
+  "slug": "creator_god",
+  "role": "AI 成员生成器",
+  "focus": "根据用户需求自动设计并生成 AI 成员",
+  "custom": false
+}

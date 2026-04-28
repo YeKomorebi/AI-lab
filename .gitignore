@@ -2,6 +2,8 @@
 skills/*
 !skills/colleague/
 skills/colleague/*
+!skills/colleague/creator_god/
+!skills/colleague/creator_god/**
 !skills/colleague/example_zhangsan/
 !skills/colleague/example_zhangsan/**
 !skills/colleague/example_tianyi/
@@ -39,3 +41,7 @@ knowledge/
 .DS_Store
 Thumbs.db
 .github/
+
+# Runtime data (user sessions, logs)
+data/
+server.log

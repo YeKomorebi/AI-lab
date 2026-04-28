@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AI Lab 工作台</title>
+  <title>AI Room 工作台</title>
+  <script src="https://cdn.jsdelivr.net/npm/marked@9/marked.min.js"></script>
   <style>
     *{box-sizing:border-box;margin:0;padding:0;}
     :root{
@@ -11,248 +12,387 @@
       --white:#fff;--g50:#f8fafc;--g100:#f1f5f9;--g200:#e2e8f0;--g300:#cbd5e1;
       --g400:#94a3b8;--g500:#64748b;--g600:#475569;--g700:#334155;--g800:#1e293b;
       --text:#1e293b;--border:#e2e8f0;
-      --sh-sm:0 1px 3px rgba(0,0,0,.07);--sh:0 4px 12px rgba(0,0,0,.08);--sh-lg:0 12px 32px rgba(0,0,0,.12);
+      --sh-sm:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);
+      --sh:0 4px 16px rgba(0,0,0,.08),0 2px 6px rgba(0,0,0,.05);
+      --sh-lg:0 16px 48px rgba(0,0,0,.14),0 4px 16px rgba(0,0,0,.08);
+      --sh-sky:0 4px 14px rgba(56,189,248,.25);
+      --radius:10px;--radius-lg:14px;--radius-sm:7px;
     }
-    body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;
-      background:var(--g50);color:var(--text);height:100vh;display:flex;overflow:hidden;font-size:14px;}
+    body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Noto Sans SC",sans-serif;
+      background:var(--g50);color:var(--text);height:100vh;display:flex;overflow:hidden;font-size:14px;
+      -webkit-font-smoothing:antialiased;}
 
     /* ── SIDEBAR ── */
-    .sidebar{width:216px;background:var(--g800);display:flex;flex-direction:column;flex-shrink:0;}
-    .sb-brand{padding:16px 14px 12px;border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:center;gap:9px;}
-    .sb-icon{width:30px;height:30px;background:linear-gradient(135deg,var(--sky),var(--sky-dp));border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:14px;}
-    .sb-name{font-size:13px;font-weight:700;color:#f1f5f9;}
-    .sb-sub{font-size:10px;color:var(--g400);}
-    .sb-sec{padding:12px 8px 4px;}
-    .sb-lbl{font-size:10px;font-weight:600;color:var(--g500);text-transform:uppercase;letter-spacing:.08em;padding:0 6px;margin-bottom:3px;}
-    .nav-item{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:7px;cursor:pointer;color:var(--g400);font-size:12px;transition:all .12s;position:relative;}
-    .nav-item:hover{background:rgba(255,255,255,.06);color:#e2e8f0;}
-    .nav-item.active{background:rgba(56,189,248,.15);color:var(--sky-m);}
-    .nav-icon{font-size:14px;width:16px;text-align:center;flex-shrink:0;}
-    .nav-badge{margin-left:auto;background:var(--sky-d);color:#fff;font-size:10px;font-weight:600;padding:1px 5px;border-radius:8px;min-width:16px;text-align:center;}
-    .nav-badge.red{background:#ef4444;}
-    .sb-div{height:1px;background:rgba(255,255,255,.07);margin:6px 10px;}
+    .sidebar{width:220px;background:var(--g800);display:flex;flex-direction:column;flex-shrink:0;overflow:hidden;}
+    .sb-brand{padding:18px 16px 14px;border-bottom:1px solid rgba(255,255,255,.06);display:flex;align-items:center;gap:10px;flex-shrink:0;}
+    .sb-icon{width:32px;height:32px;background:linear-gradient(135deg,var(--sky) 0%,var(--sky-dp) 100%);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:15px;box-shadow:0 2px 8px rgba(56,189,248,.35);}
+    .sb-name{font-size:13px;font-weight:700;color:#f1f5f9;letter-spacing:-.01em;}
+    .sb-sub{font-size:10px;color:var(--g500);margin-top:1px;}
+    .sb-sec{padding:14px 10px 4px;flex-shrink:0;}
+    .sb-lbl{font-size:9.5px;font-weight:700;color:var(--g600);text-transform:uppercase;letter-spacing:.1em;padding:0 8px;margin-bottom:4px;}
+    .nav-item{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:8px;cursor:pointer;color:var(--g400);font-size:12.5px;transition:all .15s;position:relative;font-weight:500;}
+    .nav-item:hover{background:rgba(255,255,255,.07);color:#cbd5e1;}
+    .nav-item.active{background:linear-gradient(135deg,rgba(56,189,248,.18),rgba(56,189,248,.1));color:#7dd3fc;}
+    .nav-item.active::before{content:"";position:absolute;left:0;top:50%;transform:translateY(-50%);width:3px;height:16px;background:var(--sky-m);border-radius:0 3px 3px 0;}
+    .nav-icon{font-size:14px;width:18px;text-align:center;flex-shrink:0;}
+    .sb-div{height:1px;background:rgba(255,255,255,.06);margin:6px 12px;flex-shrink:0;}
 
-    .members{padding:8px 8px 4px;}
-    .member-row{display:flex;align-items:center;gap:7px;padding:5px 8px;border-radius:6px;cursor:pointer;transition:background .12s;}
-    .member-row:hover{background:rgba(255,255,255,.05);}
-    .m-av{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0;position:relative;}
-    .m-dot{position:absolute;bottom:0;right:0;width:6px;height:6px;border-radius:50%;background:#22c55e;border:1.5px solid var(--g800);}
-    .m-name{font-size:11px;color:var(--g300);}
-    .m-status{font-size:10px;color:var(--g500);}
-    .av-zs{background:linear-gradient(135deg,#818cf8,#6366f1);}
-    .av-ty{background:linear-gradient(135deg,#38bdf8,#0284c7);}
-    .av-jx{background:linear-gradient(135deg,#fb923c,#ea580c);}
-    .av-mz{background:linear-gradient(135deg,#34d399,#059669);}
-    .av-me{background:linear-gradient(135deg,#f472b6,#db2777);}
-    .av-gray{background:linear-gradient(135deg,#94a3b8,#64748b);}
+    /* sidebar rooms list */
+    .sb-rooms{flex:1;overflow-y:auto;padding:4px 10px 8px;}
+    .sb-room-item{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:8px;cursor:pointer;color:var(--g400);font-size:12px;transition:all .15s;font-weight:500;}
+    .sb-room-item:hover{background:rgba(255,255,255,.07);color:#cbd5e1;}
+    .sb-room-item.active{background:linear-gradient(135deg,rgba(56,189,248,.18),rgba(56,189,248,.1));color:#7dd3fc;}
+    .sb-room-dot{width:6px;height:6px;border-radius:50%;background:var(--sky-d);flex-shrink:0;box-shadow:0 0 4px rgba(56,189,248,.5);}
+    .sb-room-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .sb-room-count{font-size:10px;color:var(--g600);background:rgba(255,255,255,.07);padding:1px 6px;border-radius:8px;}
 
-    .sb-footer{margin-top:auto;padding:10px 12px;border-top:1px solid rgba(255,255,255,.07);display:flex;align-items:center;gap:8px;}
-    .ft-av{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#f472b6,#db2777);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0;}
+    .sb-footer{padding:12px 14px;border-top:1px solid rgba(255,255,255,.06);display:flex;align-items:center;gap:9px;flex-shrink:0;}
+    .ft-av{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#f472b6,#db2777);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0;box-shadow:0 2px 6px rgba(219,39,119,.3);}
     .ft-name{font-size:12px;font-weight:600;color:#e2e8f0;}
-    .ft-role{font-size:10px;color:var(--g500);}
+    .ft-role{font-size:10px;color:var(--g500);margin-top:1px;}
 
     /* ── MAIN ── */
     .main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
-    .topbar{background:var(--white);border-bottom:1px solid var(--border);padding:0 20px;height:50px;display:flex;align-items:center;gap:12px;flex-shrink:0;box-shadow:var(--sh-sm);}
-    .tb-title{font-size:14px;font-weight:700;}
-    .tb-sub{font-size:11px;color:var(--g400);}
-    .tb-right{margin-left:auto;display:flex;align-items:center;gap:7px;}
-    .tb-btn{padding:5px 12px;border-radius:6px;border:1.5px solid var(--border);background:var(--white);font-size:12px;color:var(--g600);cursor:pointer;display:flex;align-items:center;gap:4px;transition:all .12s;white-space:nowrap;}
-    .tb-btn:hover{border-color:var(--sky-m);color:var(--sky-d);}
-    .tb-btn.primary{background:linear-gradient(135deg,var(--sky),var(--sky-dp));border-color:transparent;color:#fff;box-shadow:0 2px 8px rgba(56,189,248,.28);}
-    .tb-btn.primary:hover{opacity:.9;}
-    .tb-btn:disabled{opacity:.45;cursor:not-allowed;}
+    .topbar{background:rgba(255,255,255,.92);backdrop-filter:blur(12px);border-bottom:1px solid rgba(226,232,240,.8);padding:0 22px;height:52px;display:flex;align-items:center;gap:12px;flex-shrink:0;box-shadow:0 1px 0 rgba(0,0,0,.05);}
+    .tb-title{font-size:15px;font-weight:700;letter-spacing:-.01em;}
+    .tb-sub{font-size:11px;color:var(--g400);margin-top:1px;}
+    .tb-right{margin-left:auto;display:flex;align-items:center;gap:8px;}
+    .tb-btn{padding:6px 14px;border-radius:8px;border:1.5px solid var(--border);background:var(--white);font-size:12px;color:var(--g600);cursor:pointer;display:flex;align-items:center;gap:5px;transition:all .15s;white-space:nowrap;font-weight:500;}
+    .tb-btn:hover{border-color:var(--sky-m);color:var(--sky-d);background:var(--sky-l);}
+    .tb-btn.primary{background:linear-gradient(135deg,var(--sky),var(--sky-dp));border-color:transparent;color:#fff;font-weight:600;box-shadow:var(--sh-sky);}
+    .tb-btn.primary:hover{box-shadow:0 6px 20px rgba(56,189,248,.35);transform:translateY(-1px);}
+    .tb-btn.danger{border-color:#fca5a5;color:#ef4444;}
+    .tb-btn.danger:hover{background:#fef2f2;border-color:#f87171;}
+    .tb-btn:disabled{opacity:.4;cursor:not-allowed;transform:none!important;}
 
     /* ── PAGES ── */
-    .page{flex:1;overflow-y:auto;padding:20px;display:none;}
+    .page{flex:1;overflow-y:auto;padding:24px;display:none;min-height:0;}
     .page.active{display:block;}
-    .chat-view{flex:1;display:none;overflow:hidden;}
+    #dynamic-rooms{flex:1;overflow:hidden;min-height:0;display:none;}
+    #dynamic-rooms.visible{display:flex;flex-direction:column;}
+    .chat-view{flex:1;display:none;overflow:hidden;min-height:0;}
     .chat-view.active{display:flex;}
 
     /* ── DASHBOARD ── */
-    .stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px;}
-    .stat-card{background:var(--white);border:1.5px solid var(--border);border-radius:10px;padding:16px 18px;box-shadow:var(--sh-sm);}
-    .stat-lbl{font-size:11px;color:var(--g400);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;}
-    .stat-val{font-size:26px;font-weight:700;line-height:1;}
-    .stat-sub{font-size:11px;color:var(--g400);margin-top:5px;}
-    .stat-up{color:#16a34a;font-weight:600;}
-    .stat-red{color:#ef4444;font-weight:600;}
-    .sec-title{font-size:12px;font-weight:600;color:var(--g500);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;}
-    .mod-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px;}
-    .mod-card{background:var(--white);border:1.5px solid var(--border);border-radius:10px;padding:18px;cursor:pointer;transition:all .15s;box-shadow:var(--sh-sm);}
-    .mod-card:hover{border-color:var(--sky-m);box-shadow:var(--sh),0 0 0 3px rgba(56,189,248,.07);transform:translateY(-1px);}
-    .mod-icon{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;margin-bottom:10px;}
-    .mod-icon.blue{background:var(--sky-l);}
-    .mod-icon.purple{background:#ede9fe;}
-    .mod-icon.green{background:#dcfce7;}
-    .mod-card h3{font-size:13px;font-weight:600;margin-bottom:4px;}
-    .mod-card p{font-size:12px;color:var(--g500);line-height:1.55;}
-    .mod-meta{margin-top:10px;padding-top:10px;border-top:1px solid var(--g100);display:flex;align-items:center;gap:5px;}
+    .stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px;}
+    .stat-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px 22px;box-shadow:var(--sh-sm);position:relative;overflow:hidden;}
+    .stat-card::after{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--sky),var(--sky-dp));}
+    .stat-lbl{font-size:11px;color:var(--g400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;font-weight:600;}
+    .stat-val{font-size:30px;font-weight:800;line-height:1;letter-spacing:-.02em;background:linear-gradient(135deg,var(--g700),var(--g800));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+    .stat-sub{font-size:11px;color:var(--g400);margin-top:6px;}
+    .sec-title{font-size:11px;font-weight:700;color:var(--g500);text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px;}
+    .rooms-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px;margin-bottom:24px;}
+    .room-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px;cursor:pointer;transition:all .2s cubic-bezier(.4,0,.2,1);box-shadow:var(--sh-sm);position:relative;}
+    .room-card:hover{border-color:var(--sky-m);box-shadow:var(--sh),0 0 0 3px rgba(56,189,248,.08);transform:translateY(-2px);}
+    .room-card-icon{font-size:24px;margin-bottom:10px;}
+    .room-card h3{font-size:13px;font-weight:700;margin-bottom:4px;letter-spacing:-.01em;}
+    .room-card-desc{font-size:11.5px;color:var(--g500);line-height:1.55;min-height:30px;margin-bottom:10px;}
+    .room-card-meta{display:flex;align-items:center;gap:6px;padding-top:10px;border-top:1px solid var(--g100);}
     .avs{display:flex;}
-    .avs .axs{width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:700;color:#fff;border:1.5px solid #fff;margin-left:-3px;}
+    .avs .axs{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:700;color:#fff;border:2px solid #fff;margin-left:-4px;box-shadow:var(--sh-sm);}
     .avs .axs:first-child{margin-left:0;}
-    .mod-meta-txt{font-size:10px;color:var(--g400);margin-left:4px;}
-    .act-card{background:var(--white);border:1.5px solid var(--border);border-radius:10px;overflow:hidden;box-shadow:var(--sh-sm);}
-    .act-hdr{padding:12px 16px;border-bottom:1px solid var(--g100);font-size:12px;font-weight:600;}
-    .act-item{display:flex;align-items:flex-start;gap:9px;padding:10px 16px;border-bottom:1px solid var(--g50);cursor:pointer;transition:background .1s;}
-    .act-item:hover{background:var(--g50);}
-    .act-item:last-child{border-bottom:none;}
-    .act-av{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0;margin-top:1px;}
-    .act-txt{font-size:12px;color:var(--text);line-height:1.5;flex:1;}
-    .act-txt b{color:var(--sky-dp);}
-    .act-time{font-size:10px;color:var(--g400);margin-top:2px;}
-    .act-tag{font-size:10px;padding:2px 6px;border-radius:8px;font-weight:500;flex-shrink:0;margin-top:2px;}
-    .tag-r{background:var(--sky-l);color:var(--sky-dp);}
-    .tag-p{background:#ede9fe;color:#6d28d9;}
-    .tag-a{background:#dcfce7;color:#15803d;}
+    .room-card-meta-txt{font-size:10px;color:var(--g400);margin-left:4px;}
+    .room-card-edit{position:absolute;top:12px;right:12px;background:none;border:none;color:var(--g300);cursor:pointer;font-size:13px;padding:3px 6px;border-radius:6px;transition:all .12s;opacity:0;}
+    .room-card:hover .room-card-edit{opacity:1;}
+    .room-card-edit:hover{background:var(--g100);color:var(--g600);}
 
     /* ── CHAT ROOM ── */
     .chat-main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
-    .chat-msgs{flex:1;overflow-y:auto;padding:18px 20px;display:flex;flex-direction:column;gap:16px;}
-
-    /* context banner */
-    .ctx-banner{background:linear-gradient(135deg,#eff6ff,#e0f4fe);border:1.5px solid var(--sky-m);border-radius:10px;padding:12px 14px;font-size:12px;line-height:1.7;color:var(--g700);position:relative;}
-    .ctx-banner-hdr{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:600;color:var(--sky-dp);margin-bottom:6px;}
+    .chat-msgs{flex:1;overflow-y:auto;padding:20px 24px;display:flex;flex-direction:column;gap:18px;}
+    .ctx-banner{background:linear-gradient(135deg,#eff6ff,#e0f4fe);border:1px solid rgba(56,189,248,.3);border-radius:var(--radius-lg);padding:14px 16px;font-size:12px;line-height:1.75;color:var(--g700);position:relative;}
+    .ctx-banner-hdr{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:700;color:var(--sky-dp);margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em;}
     .ctx-banner-body{white-space:pre-wrap;}
-    .ctx-dismiss{position:absolute;top:8px;right:10px;background:none;border:none;color:var(--g400);cursor:pointer;font-size:14px;}
-    .ctx-dismiss:hover{color:var(--text);}
-
+    .ctx-dismiss{position:absolute;top:10px;right:12px;background:none;border:none;color:var(--g400);cursor:pointer;font-size:14px;border-radius:4px;padding:2px 4px;transition:all .12s;}
+    .ctx-dismiss:hover{color:var(--text);background:rgba(0,0,0,.05);}
     .msg-sys{text-align:center;font-size:11px;color:var(--g400);padding:2px 0;}
-    .msg-sys span{background:var(--g100);padding:3px 9px;border-radius:8px;}
-    .msg-row{display:flex;gap:9px;align-items:flex-start;}
+    .msg-sys span{background:var(--g100);padding:3px 10px;border-radius:10px;font-weight:500;}
+    .msg-row{display:flex;gap:10px;align-items:flex-start;}
     .msg-row.me{flex-direction:row-reverse;}
-    .msg-av{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0;}
+    .msg-av{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0;box-shadow:var(--sh-sm);}
     .msg-body{max-width:68%;}
-    .msg-meta{font-size:11px;color:var(--g400);margin-bottom:3px;display:flex;align-items:center;gap:5px;}
+    .msg-meta{font-size:11px;color:var(--g400);margin-bottom:4px;display:flex;align-items:center;gap:5px;}
     .msg-row.me .msg-meta{flex-direction:row-reverse;}
     .msg-sender{font-weight:600;color:var(--g600);}
-    .msg-bubble{background:var(--white);border:1.5px solid var(--border);border-radius:10px;border-top-left-radius:3px;padding:9px 13px;font-size:13px;line-height:1.65;color:var(--text);box-shadow:var(--sh-sm);}
-    .msg-row.me .msg-bubble{background:linear-gradient(135deg,var(--sky),var(--sky-dp));border-color:transparent;color:#fff;border-top-left-radius:10px;border-top-right-radius:3px;box-shadow:0 2px 8px rgba(56,189,248,.28);}
-
-    /* 并行回复 */
-    .msg-parallel{background:var(--white);border:1.5px solid var(--border);border-radius:10px;overflow:hidden;box-shadow:var(--sh-sm);}
-    .par-hdr{padding:7px 13px;background:var(--g50);border-bottom:1px solid var(--g100);font-size:11px;color:var(--g400);display:flex;align-items:center;gap:5px;}
-    .par-item{padding:11px 13px;border-bottom:1px solid var(--g50);display:flex;gap:8px;}
+    .msg-bubble{background:var(--white);border:1px solid var(--border);border-radius:14px;border-top-left-radius:4px;padding:10px 14px;font-size:13px;line-height:1.7;color:var(--text);box-shadow:var(--sh-sm);}
+    .msg-row.me .msg-bubble{background:linear-gradient(135deg,var(--sky) 0%,var(--sky-dp) 100%);border-color:transparent;color:#fff;border-top-left-radius:14px;border-top-right-radius:4px;box-shadow:var(--sh-sky);}
+    .msg-parallel{background:var(--white);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--sh-sm);}
+    .par-hdr{padding:8px 14px;background:var(--g50);border-bottom:1px solid var(--g100);font-size:11px;color:var(--g400);display:flex;align-items:center;gap:5px;font-weight:500;}
+    .par-item{padding:12px 14px;border-bottom:1px solid var(--g50);display:flex;gap:9px;}
     .par-item:last-child{border-bottom:none;}
-    .par-name{font-size:11px;font-weight:600;color:var(--g600);margin-bottom:2px;}
-    .par-text{font-size:13px;color:var(--text);line-height:1.6;}
+    .par-name{font-size:11px;font-weight:700;color:var(--g600);margin-bottom:3px;}
+    .par-text{font-size:13px;color:var(--text);line-height:1.65;}
+    .thinking{display:inline-flex;align-items:center;gap:4px;color:var(--sky-d);font-size:12px;font-weight:500;}
+    .thinking span{width:5px;height:5px;border-radius:50%;background:var(--sky);animation:pulse 1.2s ease-in-out infinite;}
+    .thinking span:nth-child(2){animation-delay:.2s;}
+    .thinking span:nth-child(3){animation-delay:.4s;}
+    @keyframes pulse{0%,80%,100%{transform:scale(.5);opacity:.3}40%{transform:scale(1);opacity:1}}
 
-    /* thinking */
-    .thinking{display:inline-flex;align-items:center;gap:3px;color:var(--sky-d);font-size:12px;}
-    .thinking span{width:4px;height:4px;border-radius:50%;background:var(--sky);animation:pulse 1.1s ease-in-out infinite;}
-    .thinking span:nth-child(2){animation-delay:.18s;}
-    .thinking span:nth-child(3){animation-delay:.36s;}
-    @keyframes pulse{0%,80%,100%{transform:scale(.6);opacity:.4}40%{transform:scale(1);opacity:1}}
-
-    /* input */
-    .chat-input{background:var(--white);border-top:1px solid var(--border);padding:12px 16px;flex-shrink:0;}
-    .at-bar{display:flex;align-items:center;gap:6px;margin-bottom:8px;flex-wrap:wrap;}
-    .at-lbl{font-size:11px;color:var(--g400);}
-    .at-chip{display:flex;align-items:center;gap:4px;padding:3px 8px;border-radius:12px;border:1.5px solid var(--border);background:var(--g50);font-size:11px;color:var(--g500);cursor:pointer;transition:all .12s;user-select:none;}
+    .chat-input{background:var(--white);border-top:1px solid var(--border);padding:14px 18px;flex-shrink:0;}
+    .at-bar{display:flex;align-items:center;gap:6px;margin-bottom:9px;flex-wrap:wrap;}
+    .at-lbl{font-size:11px;color:var(--g400);font-weight:500;}
+    .at-chip{display:flex;align-items:center;gap:4px;padding:3px 10px;border-radius:12px;border:1.5px solid var(--border);background:var(--g50);font-size:11px;color:var(--g500);cursor:pointer;transition:all .15s;user-select:none;font-weight:500;}
     .at-chip:hover{border-color:var(--sky-m);color:var(--sky-d);background:var(--sky-l);}
-    .at-chip.active{border-color:var(--sky);color:var(--sky-dp);background:var(--sky-l);}
+    .at-chip.active{border-color:var(--sky);color:var(--sky-dp);background:var(--sky-l);font-weight:600;}
     .at-dot{width:6px;height:6px;border-radius:50%;}
-    .input-row{display:flex;gap:7px;align-items:flex-end;}
-    .input-box{flex:1;background:var(--g50);border:1.5px solid var(--border);border-radius:9px;padding:8px 12px;font-size:13px;font-family:inherit;color:var(--text);outline:none;resize:none;min-height:38px;max-height:110px;line-height:1.5;transition:border-color .15s;}
-    .input-box:focus{border-color:var(--sky);background:var(--white);}
-    .send-btn{width:34px;height:34px;border-radius:8px;background:linear-gradient(135deg,var(--sky),var(--sky-dp));border:none;color:#fff;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(56,189,248,.3);flex-shrink:0;transition:opacity .12s;}
-    .send-btn:hover{opacity:.88;}
-    .send-btn:disabled{background:var(--g200);box-shadow:none;cursor:not-allowed;}
+    .input-row{display:flex;gap:8px;align-items:flex-end;}
+    .input-box{flex:1;background:var(--g50);border:1.5px solid var(--border);border-radius:10px;padding:9px 13px;font-size:13px;font-family:inherit;color:var(--text);outline:none;resize:none;min-height:40px;max-height:120px;line-height:1.55;transition:all .18s;}
+    .input-box:focus{border-color:var(--sky);background:var(--white);box-shadow:0 0 0 3px rgba(56,189,248,.1);}
+    .send-btn{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--sky),var(--sky-dp));border:none;color:#fff;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:var(--sh-sky);flex-shrink:0;transition:all .15s;}
+    .send-btn:hover{box-shadow:0 4px 18px rgba(56,189,248,.4);transform:translateY(-1px);}
+    .send-btn:disabled{background:var(--g200);box-shadow:none;cursor:not-allowed;transform:none;}
 
     /* right context panel */
-    .ctx-panel{width:200px;background:var(--white);border-left:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto;}
-    .ctx-sec{padding:12px 14px;border-bottom:1px solid var(--g100);}
-    .ctx-lbl{font-size:10px;font-weight:600;color:var(--g400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;}
-    .ctx-member{display:flex;align-items:center;gap:6px;padding:4px 0;}
-    .ctx-av{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff;flex-shrink:0;position:relative;}
-    .ctx-online{position:absolute;bottom:0;right:0;width:5px;height:5px;border-radius:50%;background:#22c55e;border:1px solid #fff;}
-    .ctx-mname{font-size:11px;color:var(--text);}
+    .ctx-panel{width:220px;background:var(--white);border-left:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto;}
+    .ctx-sec{padding:14px 16px;border-bottom:1px solid var(--g100);}
+    .ctx-lbl{font-size:9.5px;font-weight:700;color:var(--g400);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;}
+    .ctx-member{display:flex;align-items:center;gap:7px;padding:5px 0;}
+    .ctx-av{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff;flex-shrink:0;position:relative;box-shadow:var(--sh-sm);}
+    .ctx-online{position:absolute;bottom:-1px;right:-1px;width:7px;height:7px;border-radius:50%;background:#22c55e;border:1.5px solid #fff;}
+    .ctx-mname{font-size:12px;color:var(--text);font-weight:500;}
     .ctx-mrole{font-size:10px;color:var(--g400);}
-    .task-item{display:flex;align-items:flex-start;gap:6px;padding:4px 0;}
-    .task-dot{width:5px;height:5px;border-radius:50%;margin-top:5px;flex-shrink:0;}
-    .task-dot.done{background:#22c55e;}
-    .task-dot.doing{background:var(--sky);}
-    .task-dot.pending{background:var(--g300);}
-    .task-txt{font-size:11px;color:var(--g600);line-height:1.45;}
-    .task-txt.done{text-decoration:line-through;color:var(--g400);}
-    .ctx-btn{width:100%;padding:7px;border-radius:7px;border:1.5px solid var(--border);background:var(--white);color:var(--g600);font-size:11px;cursor:pointer;margin-bottom:5px;transition:all .12s;text-align:left;}
-    .ctx-btn:hover{border-color:var(--sky-m);color:var(--sky-d);}
-    .ctx-btn.transfer{border-color:var(--sky-m);color:var(--sky-dp);background:var(--sky-l);font-weight:600;}
-    .ctx-btn.transfer:hover{background:var(--sky-m);color:#fff;border-color:var(--sky-m);}
+    .ctx-btn{width:100%;padding:7px 10px;border-radius:8px;border:1.5px solid var(--border);background:var(--white);color:var(--g600);font-size:11.5px;cursor:pointer;margin-bottom:6px;transition:all .15s;text-align:left;font-weight:500;}
+    .ctx-btn:hover{border-color:var(--sky-m);color:var(--sky-d);background:var(--sky-l);}
+    .ctx-btn.transfer{border-color:var(--sky-m);color:var(--sky-dp);background:linear-gradient(135deg,rgba(224,244,254,.7),rgba(224,244,254,.4));font-weight:600;}
+    .ctx-btn.transfer:hover{background:linear-gradient(135deg,var(--sky),var(--sky-dp));color:#fff;border-color:transparent;box-shadow:var(--sh-sky);}
     .ctx-btn:disabled{opacity:.4;cursor:not-allowed;}
+    #ctx-transfer-btns{}
 
-    /* transfer overlay */
-    .transfer-overlay{position:fixed;inset:0;background:rgba(15,23,42,.45);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:300;}
-    .transfer-overlay.hidden{display:none;}
-    .transfer-modal{background:var(--white);border-radius:14px;padding:24px;width:420px;box-shadow:var(--sh-lg);display:flex;flex-direction:column;gap:14px;}
-    .transfer-modal h2{font-size:15px;font-weight:700;}
-    .transfer-progress{font-size:13px;color:var(--g500);line-height:1.7;}
-    .transfer-summary-box{background:var(--sky-l);border:1.5px solid var(--sky-m);border-radius:8px;padding:12px 14px;font-size:12px;line-height:1.7;color:var(--g700);white-space:pre-wrap;max-height:220px;overflow-y:auto;}
-    .transfer-actions{display:flex;gap:8px;justify-content:flex-end;}
-    .btn-ok{padding:8px 18px;border:none;border-radius:7px;background:linear-gradient(135deg,var(--sky),var(--sky-dp));color:#fff;font-size:13px;font-weight:600;cursor:pointer;}
-    .btn-cancel{padding:8px 14px;border:1.5px solid var(--border);border-radius:7px;background:var(--white);color:var(--g600);font-size:13px;cursor:pointer;}
-
-    /* scrollbar */
-    ::-webkit-scrollbar{width:4px;}
-    ::-webkit-scrollbar-track{background:transparent;}
-    ::-webkit-scrollbar-thumb{background:var(--g200);border-radius:3px;}
-
-    /* ── MEMBERS PAGE ── */
-    .members-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;}
-    .member-card{background:var(--white);border:1.5px solid var(--border);border-radius:12px;padding:16px;box-shadow:var(--sh-sm);position:relative;transition:all .15s;}
-    .member-card:hover{border-color:var(--sky-m);box-shadow:var(--sh),0 0 0 3px rgba(56,189,248,.07);}
-    .mc-head{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
-    .mc-av{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:#fff;flex-shrink:0;}
-    .mc-name{font-size:14px;font-weight:700;}
-    .mc-role{font-size:11px;color:var(--g400);margin-top:1px;}
-    .mc-focus{font-size:12px;color:var(--g500);line-height:1.5;margin-bottom:9px;min-height:32px;}
-    .mc-rooms{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px;}
-    .mc-room-tag{font-size:10px;padding:2px 7px;border-radius:8px;background:var(--sky-l);color:var(--sky-dp);font-weight:500;}
-    .mc-edit{width:100%;padding:6px;border-radius:7px;border:1.5px solid var(--border);background:var(--white);color:var(--g600);font-size:12px;cursor:pointer;transition:all .12s;}
-    .mc-edit:hover{border-color:var(--sky-m);color:var(--sky-d);}
-
-    /* ── AGENT EDIT MODAL ── */
-    .agent-overlay{position:fixed;inset:0;background:rgba(15,23,42,.45);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:300;}
-    .agent-overlay.hidden{display:none;}
-    .agent-modal{background:var(--white);border-radius:14px;width:620px;max-width:96vw;max-height:90vh;display:flex;flex-direction:column;box-shadow:var(--sh-lg);}
-    .am-header{padding:18px 20px 0;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
-    .am-header h2{font-size:15px;font-weight:700;}
-    .am-close{background:none;border:none;font-size:18px;color:var(--g400);cursor:pointer;line-height:1;}
-    .am-close:hover{color:var(--text);}
-    .am-tabs{display:flex;gap:0;border-bottom:1px solid var(--border);margin:12px 20px 0;flex-shrink:0;}
-    .am-tab{padding:8px 14px;font-size:12px;font-weight:500;color:var(--g500);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .12s;white-space:nowrap;}
-    .am-tab.active{color:var(--sky-dp);border-bottom-color:var(--sky);}
-    .am-body{flex:1;overflow-y:auto;padding:16px 20px;}
-    .am-tab-panel{display:none;}
-    .am-tab-panel.active{display:block;}
-    .am-field{margin-bottom:14px;}
-    .am-label{font-size:11px;font-weight:600;color:var(--g500);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px;}
-    .am-input{width:100%;padding:8px 10px;border:1.5px solid var(--border);border-radius:7px;font-size:13px;font-family:inherit;color:var(--text);outline:none;transition:border-color .15s;background:var(--white);}
-    .am-input:focus{border-color:var(--sky);}
-    .am-textarea{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:7px;font-size:12px;font-family:"Consolas","Courier New",monospace;color:var(--text);outline:none;resize:vertical;min-height:320px;line-height:1.6;transition:border-color .15s;background:var(--g50);}
-    .am-textarea:focus{border-color:var(--sky);background:var(--white);}
-    .am-rooms{display:flex;flex-wrap:wrap;gap:8px;}
-    .am-room-cb{display:flex;align-items:center;gap:6px;padding:6px 10px;border:1.5px solid var(--border);border-radius:7px;cursor:pointer;font-size:12px;color:var(--g600);transition:all .12s;user-select:none;}
-    .am-room-cb:hover{border-color:var(--sky-m);color:var(--sky-d);}
-    .am-room-cb input{accent-color:var(--sky-dp);}
-    .am-footer{padding:14px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px;flex-shrink:0;}
-    .am-save{padding:8px 20px;border:none;border-radius:7px;background:linear-gradient(135deg,var(--sky),var(--sky-dp));color:#fff;font-size:13px;font-weight:600;cursor:pointer;}
-    .am-save:disabled{opacity:.5;cursor:not-allowed;}
-    .am-cancel{padding:8px 14px;border:1.5px solid var(--border);border-radius:7px;background:var(--white);color:var(--g600);font-size:13px;cursor:pointer;}
-
-    /* ── FILE ATTACHMENTS ── */
-    .attach-bar{display:flex;flex-wrap:wrap;gap:6px;padding:0 0 8px;}
+    /* file attachments */
+    .attach-bar{display:flex;flex-wrap:wrap;gap:6px;padding:0 0 9px;}
     .attach-bar:empty{display:none;}
-    .attach-chip{display:flex;align-items:center;gap:5px;padding:4px 8px 4px 6px;border-radius:7px;border:1.5px solid var(--border);background:var(--g50);font-size:11px;color:var(--g600);max-width:180px;}
+    .attach-chip{display:flex;align-items:center;gap:5px;padding:4px 9px 4px 7px;border-radius:8px;border:1.5px solid var(--border);background:var(--g50);font-size:11px;color:var(--g600);max-width:180px;}
     .attach-chip.img-chip{border-color:var(--sky-m);background:var(--sky-l);color:var(--sky-dp);}
     .attach-chip-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;}
-    .attach-rm{background:none;border:none;cursor:pointer;color:var(--g400);font-size:12px;line-height:1;padding:0;flex-shrink:0;}
+    .attach-rm{background:none;border:none;cursor:pointer;color:var(--g300);font-size:13px;line-height:1;padding:0;flex-shrink:0;transition:color .12s;}
     .attach-rm:hover{color:#ef4444;}
-    .upload-btn{width:34px;height:34px;border-radius:8px;border:1.5px solid var(--border);background:var(--white);color:var(--g500);font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .12s;}
-    .upload-btn:hover{border-color:var(--sky-m);color:var(--sky-d);}
-    .msg-attachments{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px;}
-    .msg-file-tag{font-size:11px;padding:3px 8px;border-radius:6px;background:var(--g100);color:var(--g600);border:1px solid var(--border);}
-    .msg-img-thumb{max-width:180px;max-height:140px;border-radius:7px;border:1.5px solid var(--border);display:block;}
+    .upload-btn{width:36px;height:36px;border-radius:10px;border:1.5px solid var(--border);background:var(--white);color:var(--g500);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;}
+    .upload-btn:hover{border-color:var(--sky-m);color:var(--sky-d);background:var(--sky-l);}
+    .msg-attachments{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:7px;}
+    .msg-file-tag{font-size:11px;padding:3px 8px;border-radius:7px;background:var(--g100);color:var(--g600);border:1px solid var(--border);}
+    .msg-img-thumb{max-width:200px;max-height:160px;border-radius:10px;border:1px solid var(--border);display:block;box-shadow:var(--sh-sm);}
+
+    /* ── MEMBERS PAGE ── */
+    .members-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:16px;}
+    .member-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px;box-shadow:var(--sh-sm);position:relative;transition:all .2s cubic-bezier(.4,0,.2,1);}
+    .member-card:hover{border-color:var(--sky-m);box-shadow:var(--sh),0 0 0 3px rgba(56,189,248,.07);transform:translateY(-2px);}
+    .mc-head{display:flex;align-items:center;gap:12px;margin-bottom:12px;}
+    .mc-av{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:#fff;flex-shrink:0;box-shadow:0 3px 10px rgba(0,0,0,.15);}
+    .mc-name{font-size:14px;font-weight:700;letter-spacing:-.01em;}
+    .mc-role{font-size:11px;color:var(--g400);margin-top:2px;}
+    .mc-focus{font-size:12px;color:var(--g500);line-height:1.55;margin-bottom:10px;min-height:34px;}
+    .mc-rooms{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:12px;}
+    .mc-room-tag{font-size:10px;padding:3px 8px;border-radius:8px;background:var(--sky-l);color:var(--sky-dp);font-weight:600;}
+    .mc-edit{width:100%;padding:7px;border-radius:8px;border:1.5px solid var(--border);background:var(--white);color:var(--g600);font-size:12px;cursor:pointer;transition:all .15s;font-weight:500;}
+    .mc-edit:hover{border-color:var(--sky-m);color:var(--sky-d);background:var(--sky-l);}
+
+    /* ── MODALS ── */
+    .overlay{position:fixed;inset:0;background:rgba(15,23,42,.5);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;z-index:300;}
+    .overlay.hidden{display:none;}
+    .modal{background:var(--white);border-radius:var(--radius-lg);box-shadow:var(--sh-lg);border:1px solid var(--border);}
+    .modal-hdr{padding:20px 22px 0;display:flex;align-items:center;justify-content:space-between;}
+    .modal-hdr h2{font-size:15px;font-weight:700;letter-spacing:-.01em;}
+    .modal-close{background:none;border:none;font-size:18px;color:var(--g400);cursor:pointer;line-height:1;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:7px;transition:all .12s;}
+    .modal-close:hover{color:var(--text);background:var(--g100);}
+    .modal-body{padding:18px 22px;}
+    .modal-footer{padding:16px 22px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px;background:var(--g50);border-radius:0 0 var(--radius-lg) var(--radius-lg);}
+    .modal-field{margin-bottom:16px;}
+    .modal-label{font-size:11px;font-weight:600;color:var(--g500);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;}
+    .modal-input{width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;color:var(--text);outline:none;transition:all .15s;background:var(--white);}
+    .modal-input:focus{border-color:var(--sky);box-shadow:0 0 0 3px rgba(56,189,248,.1);}
+    .modal-textarea{width:100%;padding:10px 13px;border:1.5px solid var(--border);border-radius:8px;font-size:12px;font-family:"Consolas","Courier New",monospace;color:var(--text);outline:none;resize:vertical;line-height:1.6;transition:all .15s;background:var(--g50);}
+    .modal-textarea:focus{border-color:var(--sky);background:var(--white);box-shadow:0 0 0 3px rgba(56,189,248,.1);}
+    .btn-primary{padding:9px 22px;border:none;border-radius:8px;background:linear-gradient(135deg,var(--sky),var(--sky-dp));color:#fff;font-size:13px;font-weight:700;cursor:pointer;transition:all .15s;box-shadow:var(--sh-sky);}
+    .btn-primary:hover{box-shadow:0 4px 18px rgba(56,189,248,.4);transform:translateY(-1px);}
+    .btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none;}
+    .btn-cancel{padding:9px 16px;border:1.5px solid var(--border);border-radius:8px;background:var(--white);color:var(--g600);font-size:13px;cursor:pointer;transition:all .15s;font-weight:500;}
+    .btn-cancel:hover{border-color:var(--g300);background:var(--g50);}
+    .btn-danger{padding:9px 16px;border:1.5px solid #fca5a5;border-radius:8px;background:var(--white);color:#ef4444;font-size:13px;cursor:pointer;transition:all .15s;font-weight:500;}
+    .btn-danger:hover{background:#fef2f2;border-color:#f87171;}
+
+    /* agent modal tabs */
+    .am-tabs{display:flex;border-bottom:1px solid var(--border);margin:14px 22px 0;flex-shrink:0;}
+    .am-tab{padding:8px 16px;font-size:12px;font-weight:600;color:var(--g500);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s;}
+    .am-tab.active{color:var(--sky-dp);border-bottom-color:var(--sky);}
+    .am-tab-panel{display:none;}
+    .am-tab-panel.active{display:block;}
+
+    /* agent rooms checkboxes */
+    .am-rooms{display:flex;flex-wrap:wrap;gap:8px;max-height:140px;overflow-y:auto;}
+    .am-room-cb{display:flex;align-items:center;gap:6px;padding:5px 10px;border:1.5px solid var(--border);border-radius:8px;cursor:pointer;font-size:12px;color:var(--g600);transition:all .15s;user-select:none;font-weight:500;}
+    .am-room-cb:hover{border-color:var(--sky-m);background:var(--sky-l);}
+    .am-room-cb input{accent-color:var(--sky-dp);}
+
+    /* transfer overlay */
+    .transfer-modal{width:440px;}
+    .transfer-progress{font-size:13px;color:var(--g500);line-height:1.75;padding:0 22px;}
+    .transfer-summary-box{background:var(--sky-l);border:1px solid rgba(56,189,248,.3);border-radius:10px;padding:14px 16px;font-size:12px;line-height:1.75;color:var(--g700);white-space:pre-wrap;max-height:200px;overflow-y:auto;margin:0 22px;}
+
+    /* room modal */
+    .room-modal{width:520px;}
+
+    /* scrollbar */
+    ::-webkit-scrollbar{width:4px;height:4px;}
+    ::-webkit-scrollbar-track{background:transparent;}
+    ::-webkit-scrollbar-thumb{background:var(--g200);border-radius:4px;}
+    ::-webkit-scrollbar-thumb:hover{background:var(--g300);}
+
+    /* ── FILES PANEL (theme-matched) ── */
+    /* Activity bar */
+    .fp-actbar{width:44px;min-width:44px;background:var(--g800);border-right:1px solid rgba(255,255,255,.06);display:flex;flex-direction:column;align-items:center;padding-top:4px;flex-shrink:0;}
+    .fp-ab-btn{width:44px;height:44px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--g500);transition:color .1s;position:relative;border:none;background:none;}
+    .fp-ab-btn:hover{color:var(--g300);}
+    .fp-ab-btn.active{color:#cbd5e1;}
+    .fp-ab-btn.active::before{content:"";position:absolute;left:0;top:50%;transform:translateY(-50%);width:2px;height:22px;background:var(--sky-m);border-radius:0 1px 1px 0;}
+    .fp-ab-btn svg{display:block;}
+    /* Explorer panel */
+    .files-panel{width:240px;background:var(--g800);border-right:1px solid rgba(255,255,255,.06);display:flex;flex-direction:column;flex-shrink:0;transition:width .12s cubic-bezier(.4,0,.2,1);overflow:hidden;}
+    .files-panel.collapsed{width:0;}
+    /* Section header */
+    .fp-section-hdr{display:flex;align-items:center;justify-content:space-between;padding:0 8px;height:22px;flex-shrink:0;margin-top:6px;}
+    .fp-section-title{font-size:10.5px;font-weight:700;color:var(--g400);text-transform:uppercase;letter-spacing:.08em;overflow:hidden;white-space:nowrap;}
+    .fp-section-more{font-size:16px;color:var(--g500);cursor:pointer;padding:0 3px;line-height:1;background:none;border:none;opacity:0;transition:opacity .1s;}
+    .files-panel:hover .fp-section-more{opacity:1;}
+    .fp-section-more:hover{color:var(--g300);}
+    /* Sub-section header */
+    .fp-header{display:flex;align-items:center;height:22px;padding:0 4px 0 0;flex-shrink:0;margin-top:2px;gap:0;}
+    .fp-header-arrow{display:flex;align-items:center;justify-content:center;width:16px;height:22px;flex-shrink:0;color:var(--g400);}
+    .fp-header-arrow svg{display:block;}
+    .fp-title{font-size:13px;font-weight:700;color:var(--g200);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:22px;cursor:pointer;letter-spacing:0;}
+    .fp-actions{display:flex;gap:0;flex-shrink:0;opacity:0;transition:opacity .1s;}
+    .files-panel:hover .fp-actions{opacity:1;}
+    .fp-act{background:none;border:none;color:var(--g400);cursor:pointer;width:22px;height:22px;display:flex;align-items:center;justify-content:center;border-radius:4px;transition:background .08s,color .08s;}
+    .fp-act:hover{background:rgba(255,255,255,.08);color:var(--g200);}
+    .fp-act svg{display:block;}
+    /* Tree */
+    .fp-tree{flex:1;overflow-y:auto;overflow-x:hidden;padding-bottom:4px;user-select:none;}
+    .fp-tree::-webkit-scrollbar{width:6px;}
+    .fp-tree::-webkit-scrollbar-track{background:transparent;}
+    .fp-tree::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:3px;}
+    .fp-tree::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,.2);}
+    .fp-empty{padding:12px 20px;font-size:12px;color:var(--g600);line-height:1.7;}
+    /* Tree rows */
+    .ft-row{display:flex;align-items:center;height:22px;cursor:pointer;position:relative;white-space:nowrap;overflow:hidden;}
+    .ft-row:hover{background:rgba(255,255,255,.06);}
+    .ft-row:hover .ft-row-acts{opacity:1;}
+    .ft-row.selected{background:rgba(56,189,248,.18);}
+    .ft-row.selected .ft-name{color:#e2e8f0;}
+    .ft-row.selected .ft-row-acts{background:linear-gradient(to left,rgba(30,45,60,.95) 60%,transparent);}
+    .ft-row.renaming,.ft-row.new-item{background:rgba(56,189,248,.1);}
+    .ft-row.dragging{opacity:.5;}
+    .ft-row.cut-item{opacity:.5;}
+    .ft-row.drop-target{background:rgba(56,189,248,.15);outline:1px solid rgba(56,189,248,.5);outline-offset:-1px;}
+    .ft-row.drop-above::before,.ft-row.drop-below::after{content:"";position:absolute;left:0;right:0;height:2px;background:var(--sky-m);pointer-events:none;z-index:2;}
+    .ft-row.drop-above::before{top:0;}
+    .ft-row.drop-below::after{bottom:0;}
+    /* Arrow chevron */
+    .ft-arrow{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;flex-shrink:0;color:var(--g500);transition:transform .1s;}
+    .ft-arrow.open{transform:rotate(90deg);}
+    .ft-arrow svg{display:block;}
+    .ft-arrow-spacer{display:inline-block;width:16px;height:16px;flex-shrink:0;}
+    /* File icons */
+    .ft-icon{width:16px;height:16px;margin-right:6px;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;font-size:13px;line-height:1;}
+    .ft-name{font-size:13px;color:var(--g300);flex:1;overflow:hidden;text-overflow:ellipsis;line-height:22px;}
+    .ft-rename-input{font-size:13px;background:var(--g700);border:1px solid var(--sky-d);color:var(--g100);border-radius:3px;padding:0 5px;height:18px;outline:none;flex:1;min-width:80px;font-family:inherit;}
+    /* Inline action buttons */
+    .ft-row-acts{display:flex;align-items:center;position:absolute;right:0;opacity:0;transition:opacity .08s;background:linear-gradient(to left,var(--g800) 55%,transparent);padding-left:16px;padding-right:4px;}
+    .ft-row:hover .ft-row-acts{background:linear-gradient(to left,rgba(30,41,59,.95) 55%,transparent);}
+    .ft-act-btn{width:22px;height:22px;display:flex;align-items:center;justify-content:center;border-radius:4px;cursor:pointer;color:var(--g400);transition:background .08s,color .08s;flex-shrink:0;}
+    .ft-act-btn:hover{background:rgba(255,255,255,.1);color:var(--g200);}
+    .ft-act-btn svg{display:block;}
+    /* Drag ghost */
+    .ft-drag-ghost{position:fixed;top:-999px;left:-999px;background:var(--g700);border:1px solid rgba(56,189,248,.4);border-radius:5px;padding:3px 10px;font-size:12px;color:var(--g200);white-space:nowrap;pointer-events:none;z-index:9999;}
+    /* Context menu */
+    .ft-ctx-menu{position:fixed;background:var(--g800);border:1px solid rgba(255,255,255,.1);border-radius:8px;box-shadow:0 8px 28px rgba(0,0,0,.45);z-index:9998;padding:4px 0;min-width:180px;}
+    .ft-ctx-item{padding:5px 14px;font-size:12.5px;color:var(--g300);cursor:pointer;display:flex;align-items:center;gap:9px;white-space:nowrap;transition:background .06s;}
+    .ft-ctx-item:hover{background:rgba(56,189,248,.14);color:#e2e8f0;}
+    .ft-ctx-sep{height:1px;background:rgba(255,255,255,.07);margin:4px 0;}
+    .ft-ctx-item.danger:hover{background:rgba(239,68,68,.15);color:#f87171;}
+    .ft-ctx-shortcut{margin-left:auto;color:var(--g600);font-size:11px;}
+    /* Toggle strip */
+    .fp-toggle{display:none;}
+    /* Preview pane */
+    .fp-preview{background:rgba(0,0,0,.2);border-top:1px solid rgba(255,255,255,.07);flex-shrink:0;max-height:180px;display:none;flex-direction:column;}
+    .fp-preview.visible{display:flex;}
+    .fp-preview-hdr{padding:4px 8px;font-size:11px;color:var(--g600);border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+    .fp-preview-hdr span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--g400);}
+    .fp-preview-body{flex:1;overflow-y:auto;padding:6px 8px;font-size:11px;color:var(--g500);font-family:"Consolas","Courier New",monospace;white-space:pre-wrap;word-break:break-all;line-height:1.55;}
+    .fp-preview-img{max-width:100%;max-height:130px;display:block;margin:4px auto;}
+    .fp-send-btn{padding:5px 8px;background:#007acc;border:none;color:#ffffff;font-size:11px;cursor:pointer;transition:background .12s;flex-shrink:0;text-align:center;}
+    .fp-send-btn:hover{background:#0062a3;}
+
+    /* ── MARKDOWN in bubbles ── */
+    .md-content{line-height:1.7;}
+    .md-content p{margin:0 0 .5em;}
+    .md-content p:last-child{margin-bottom:0;}
+    .md-content h1,.md-content h2,.md-content h3,.md-content h4{font-weight:700;margin:.6em 0 .3em;}
+    .md-content h1{font-size:1.1em;}.md-content h2{font-size:1.05em;}.md-content h3{font-size:1em;}
+    .md-content ul,.md-content ol{margin:.3em 0 .3em 1.2em;padding:0;}
+    .md-content li{margin:.15em 0;}
+    .md-content code{background:rgba(0,0,0,.07);padding:1px 5px;border-radius:4px;font-family:"Consolas","Courier New",monospace;font-size:.85em;}
+    .msg-row.me .md-content code{background:rgba(255,255,255,.22);}
+    .md-content pre{background:var(--g800);color:#e2e8f0;border-radius:8px;padding:10px 13px;overflow-x:auto;margin:.4em 0;position:relative;}
+    .msg-row.me .md-content pre{background:rgba(0,0,0,.35);}
+    .md-content pre code{background:none;padding:0;font-size:.82em;color:inherit;}
+    .md-content blockquote{border-left:3px solid var(--sky-m);margin:.3em 0;padding:.2em .7em;color:var(--g500);}
+    .md-content a{color:var(--sky-dp);text-decoration:underline;}
+    .md-content hr{border:none;border-top:1px solid var(--g200);margin:.5em 0;}
+    .md-content table{border-collapse:collapse;font-size:.88em;margin:.4em 0;}
+    .md-content th,.md-content td{border:1px solid var(--g200);padding:4px 8px;}
+    .md-content th{background:var(--g100);}
+    /* parallel block markdown */
+    .par-text.md-content{font-size:13px;}
+
+    /* ── COPY BUTTON ── */
+    .msg-bubble-wrap{position:relative;}
+    .copy-btn{
+      position:absolute;top:6px;right:7px;
+      padding:2px 7px;border-radius:5px;border:1px solid var(--border);
+      background:var(--white);color:var(--g500);font-size:11px;cursor:pointer;
+      opacity:0;transition:opacity .15s;white-space:nowrap;
+    }
+    .msg-bubble-wrap:hover .copy-btn{opacity:1;}
+    .copy-btn.copied{color:#22c55e;border-color:#86efac;}
+
+    /* ── OPTION BUTTONS ── */
+    .msg-options{display:flex;flex-direction:column;gap:0;margin-top:12px;border:1.5px solid var(--border);border-radius:10px;overflow:hidden;max-width:420px;}
+    .opt-item{display:flex;align-items:center;gap:10px;padding:9px 14px;background:var(--white);cursor:pointer;transition:background .12s;border-bottom:1px solid var(--g100);user-select:none;}
+    .opt-item:last-child{border-bottom:none;}
+    .opt-item:hover{background:var(--g50);}
+    .opt-indicator{width:16px;height:16px;border-radius:50%;border:1.5px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .12s;}
+    .opt-indicator.radio{border-radius:50%;}
+    .opt-indicator.checkbox{border-radius:4px;}
+    .opt-item.selected .opt-indicator{background:var(--sky-m);border-color:var(--sky-m);}
+    .opt-item.selected .opt-indicator::after{content:"";display:block;width:6px;height:6px;border-radius:50%;background:#fff;}
+    .opt-item.selected .opt-indicator.checkbox::after{content:"✓";font-size:10px;color:#fff;border-radius:0;width:auto;height:auto;}
+    .opt-label{font-size:13px;color:var(--text);line-height:1.4;}
+    .opt-confirm{width:100%;padding:8px;background:var(--sky-m);color:#fff;border:none;font-size:12px;font-weight:600;cursor:pointer;transition:background .12s;margin-top:8px;border-radius:8px;}
+    .opt-confirm:hover{background:var(--sky-d);}
+    .opt-confirm:disabled{background:var(--g300);cursor:default;}
+
+    /* ── SKILL EXTRACT ── */
+    .sk-src-btn{background:var(--g700);border:1px solid var(--border);border-radius:7px;color:var(--g400);font-size:12px;padding:5px 12px;cursor:pointer;transition:all .12s;}
+    .sk-src-btn:hover{background:var(--g600);color:var(--text);}
+    .sk-src-btn.active{background:rgba(56,189,248,.18);border-color:var(--sky-m);color:var(--sky-m);}
+    .sk-card{background:var(--g800);border:1px solid var(--border);border-radius:9px;padding:12px 14px;min-width:180px;max-width:220px;}
+    .sk-card-name{font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px;}
+    .sk-card-desc{font-size:11px;color:var(--g400);line-height:1.5;}
+    .sk-card-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;}
+    .sk-tag{font-size:10px;background:rgba(56,189,248,.12);color:var(--sky-m);border-radius:4px;padding:2px 6px;}
+    .sk-log-line{padding:2px 0;border-bottom:1px solid rgba(255,255,255,.04);}
+    .sk-log-line.ok{color:#86efac;}
+    .sk-log-line.skip{color:#fbbf24;}
+    .sk-log-line.err{color:#f87171;}
+
+    /* ── EMPTY STATE ── */
+    .empty-state{
+      flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+      gap:10px;color:var(--g400);text-align:center;padding:40px 20px;
+    }
+    .empty-icon{font-size:38px;margin-bottom:4px;}
+    .empty-title{font-size:14px;font-weight:600;color:var(--g500);}
+    .empty-desc{font-size:12px;line-height:1.6;max-width:260px;}
+    .empty-hints{display:flex;flex-direction:column;gap:6px;margin-top:8px;}
+    .empty-hint{font-size:11px;background:var(--g100);border-radius:8px;padding:5px 12px;color:var(--g600);}
   </style>
 </head>
 <body>
@@ -261,9 +401,8 @@
 <div class="sidebar">
   <div class="sb-brand">
     <div class="sb-icon">⚡</div>
-    <div><div class="sb-name">AI Lab</div><div class="sb-sub">公司工作台</div></div>
+    <div><div class="sb-name">AI Room</div><div class="sb-sub">公司工作台</div></div>
   </div>
-
   <div class="sb-sec">
     <div class="sb-lbl">工作台</div>
     <div class="nav-item active" id="nav-dashboard" onclick="showDashboard()">
@@ -272,32 +411,38 @@
     <div class="nav-item" id="nav-members" onclick="showMembers()">
       <span class="nav-icon">👥</span>成员管理
     </div>
+    <div class="nav-item" id="nav-skills" onclick="showSkills()">
+      <span class="nav-icon">🧠</span>Skill 提取
+    </div>
   </div>
-
   <div class="sb-sec">
-    <div class="sb-lbl">功能模块</div>
-    <div class="nav-item" id="nav-product" onclick="showRoom('product')">
-      <span class="nav-icon">💡</span>需求讨论室
-    </div>
-    <div class="nav-item" id="nav-review" onclick="showRoom('review')">
-      <span class="nav-icon">🔍</span>技术评审室
-    </div>
-    <div class="nav-item" id="nav-algo" onclick="showRoom('algo')">
-      <span class="nav-icon">🧪</span>算法实验室
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:0 6px;margin-bottom:3px;">
+      <div class="sb-lbl" style="margin:0;">房间</div>
+      <button onclick="openCreateRoomModal()" style="background:none;border:none;color:var(--g500);cursor:pointer;font-size:16px;line-height:1;padding:0 2px;" title="新建房间">＋</button>
     </div>
   </div>
-
-  <div class="sb-div"></div>
-
-  <div class="members">
-    <div class="sb-lbl" style="padding:0 6px;margin-bottom:6px;">在线成员</div>
-    <div id="sidebar-members"></div>
-  </div>
-
+  <div class="sb-rooms" id="sb-rooms-list"></div>
   <div class="sb-footer">
     <div class="ft-av">我</div>
-    <div><div class="ft-name">老板</div><div class="ft-role">CEO · AI Lab</div></div>
+    <div style="flex:1;"><div class="ft-name">老板</div><div class="ft-role">CEO · AI Room</div></div>
+    <button onclick="openThemePanel()" title="主题配色" style="background:none;border:none;cursor:pointer;font-size:15px;padding:2px 4px;opacity:.6;transition:opacity .15s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.6">🎨</button>
   </div>
+</div>
+
+<!-- ── 主题面板 ── -->
+<div id="theme-panel" style="display:none;position:fixed;bottom:60px;left:10px;width:248px;background:#1a2744;border:1px solid rgba(255,255,255,.12);border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.4);z-index:9999;padding:14px 16px;font-size:12px;color:#e2e8f0;">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+    <div style="font-weight:700;font-size:13px;">🎨 界面主题</div>
+    <button onclick="closeThemePanel()" style="background:none;border:none;color:#94a3b8;cursor:pointer;font-size:16px;line-height:1;padding:0 2px;">✕</button>
+  </div>
+  <!-- 预设主题 -->
+  <div style="font-size:10px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;">预设主题</div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:14px;" id="theme-presets"></div>
+  <!-- 自定义色 -->
+  <div style="font-size:10px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;">自定义</div>
+  <div style="display:flex;flex-direction:column;gap:8px;" id="theme-custom-rows"></div>
+  <!-- 重置 -->
+  <button onclick="resetTheme()" style="margin-top:12px;width:100%;padding:6px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:7px;color:#94a3b8;font-size:11px;cursor:pointer;transition:all .12s;" onmouseover="this.style.background='rgba(255,255,255,.1)'" onmouseout="this.style.background='rgba(255,255,255,.06)'">↺ 恢复默认</button>
 </div>
 
 <!-- ── MAIN ── -->
@@ -305,31 +450,27 @@
   <div class="topbar">
     <div>
       <div class="tb-title" id="tb-title">首页</div>
-      <div class="tb-sub" id="tb-sub">欢迎回来，今天的工作一切顺利</div>
+      <div class="tb-sub" id="tb-sub">欢迎回来</div>
     </div>
-    <div class="tb-right">
-      <button class="tb-btn" id="btn-clear" onclick="clearRoom()" style="display:none;">🗑 清空记录</button>
-      <button class="tb-btn primary" id="btn-action" onclick="showRoom('product')">＋ 开始讨论</button>
+    <div class="tb-right" id="tb-right">
+      <button class="tb-btn primary" onclick="openCreateRoomModal()">＋ 新建房间</button>
     </div>
   </div>
 
   <!-- Dashboard -->
   <div class="page active" id="page-dashboard">
     <div class="stat-row">
-      <div class="stat-card"><div class="stat-lbl">本周讨论</div><div class="stat-val">8</div><div class="stat-sub"><span class="stat-up">↑ 2</span> 较上周</div></div>
-      <div class="stat-card"><div class="stat-lbl">进行中任务</div><div class="stat-val">3</div><div class="stat-sub"><span class="stat-red">1 条紧急</span></div></div>
-      <div class="stat-card"><div class="stat-lbl">待处理消息</div><div class="stat-val">5</div><div class="stat-sub"><span class="stat-red">1 条紧急</span></div></div>
+      <div class="stat-card"><div class="stat-lbl">房间数</div><div class="stat-val" id="stat-rooms">0</div><div class="stat-sub">个活跃房间</div></div>
+      <div class="stat-card"><div class="stat-lbl">成员数</div><div class="stat-val" id="stat-agents">0</div><div class="stat-sub">名 AI 成员</div></div>
+      <div class="stat-card"><div class="stat-lbl">状态</div><div class="stat-val" style="font-size:18px;">🟢</div><div class="stat-sub">服务正常</div></div>
     </div>
-    <div class="sec-title">功能模块</div>
-    <div class="mod-grid" id="dash-mod-grid"></div>
-    <div class="sec-title">最近动态</div>
-    <div class="act-card">
-      <div class="act-hdr">今日消息</div>
-      <div id="dash-activity"></div>
+    <div class="sec-title">所有房间</div>
+    <div class="rooms-grid" id="dash-rooms-grid">
+      <div style="color:var(--g400);font-size:13px;">加载中…</div>
     </div>
   </div>
 
-  <!-- ── 成员管理 ── -->
+  <!-- Members page -->
   <div class="page" id="page-members">
     <div class="sec-title">全体成员</div>
     <div class="members-grid" id="members-grid">
@@ -337,256 +478,584 @@
     </div>
   </div>
 
-  <!-- ── 需求讨论室 ── -->
-  <div class="chat-view" id="room-product">
-    <div class="chat-main">
-      <div class="chat-msgs" id="msgs-product">
-        <div class="msg-sys" id="msg-sys-product"><span>需求讨论室 · 加载中…</span></div>
+  <!-- Skills 提取页 -->
+  <div class="page" id="page-skills">
+    <div class="sec-title">Skill 提取</div>
+    <div style="display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap;">
+      <!-- 左：输入面板 -->
+      <div style="flex:1;min-width:320px;background:var(--g800);border:1px solid var(--border);border-radius:10px;padding:20px;">
+        <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:14px;">数据来源</div>
+        <!-- 来源选择 -->
+        <div style="display:flex;gap:8px;margin-bottom:16px;" id="sk-source-tabs">
+          <button class="sk-src-btn active" onclick="skSrcSelect('text')">📝 文本</button>
+          <button class="sk-src-btn" onclick="skSrcSelect('url')">🌐 URL</button>
+          <button class="sk-src-btn" onclick="skSrcSelect('feishu')">📋 飞书</button>
+        </div>
+        <!-- text panel -->
+        <div id="sk-panel-text">
+          <div style="font-size:12px;color:var(--g400);margin-bottom:6px;">粘贴文档内容 / 工作流程描述</div>
+          <textarea id="sk-text" style="width:100%;box-sizing:border-box;height:160px;background:var(--g700);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:12px;padding:10px;resize:vertical;font-family:inherit;" placeholder="粘贴任何文本内容，AI 将从中提炼可复用的 Skill…"></textarea>
+        </div>
+        <!-- url panel -->
+        <div id="sk-panel-url" style="display:none;">
+          <div style="font-size:12px;color:var(--g400);margin-bottom:6px;">网页 URL（公开可访问）</div>
+          <input id="sk-url" style="width:100%;box-sizing:border-box;background:var(--g700);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:12px;padding:8px 10px;" placeholder="https://…" />
+        </div>
+        <!-- feishu panel -->
+        <div id="sk-panel-feishu" style="display:none;">
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <div>
+              <div style="font-size:12px;color:var(--g400);margin-bottom:4px;">App ID</div>
+              <input id="sk-fs-appid" style="width:100%;box-sizing:border-box;background:var(--g700);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:12px;padding:8px 10px;" placeholder="cli_xxx" />
+            </div>
+            <div>
+              <div style="font-size:12px;color:var(--g400);margin-bottom:4px;">App Secret</div>
+              <input id="sk-fs-secret" type="password" style="width:100%;box-sizing:border-box;background:var(--g700);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:12px;padding:8px 10px;" placeholder="xxx" />
+            </div>
+            <div>
+              <div style="font-size:12px;color:var(--g400);margin-bottom:4px;">文档 Token（Doc）</div>
+              <input id="sk-fs-doctoken" style="width:100%;box-sizing:border-box;background:var(--g700);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:12px;padding:8px 10px;" placeholder="doxcnXxxxx（与 Wiki Token 二选一）" />
+            </div>
+            <div>
+              <div style="font-size:12px;color:var(--g400);margin-bottom:4px;">Wiki Token（Wiki 页面）</div>
+              <input id="sk-fs-wikitoken" style="width:100%;box-sizing:border-box;background:var(--g700);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:12px;padding:8px 10px;" placeholder="wikcnXxxxx（与 Doc Token 二选一）" />
+            </div>
+          </div>
+        </div>
+        <button id="sk-run-btn" onclick="runSkillExtract()" style="margin-top:16px;width:100%;padding:9px;background:var(--sky-d);border:none;border-radius:7px;color:#fff;font-size:13px;font-weight:600;cursor:pointer;">🔍 开始提取 Skill</button>
       </div>
-      <div class="chat-input">
-        <div class="at-bar">
-          <span class="at-lbl">@</span>
-          <div class="at-chip active" data-key="" onclick="setAt(this,'product','')">全员</div>
-          <span id="at-chips-product"></span>
-        </div>
-        <div class="attach-bar" id="attach-product"></div>
-        <div class="input-row">
-          <button class="upload-btn" onclick="triggerUpload('product')" title="上传文档或图片">📎</button>
-          <input type="file" id="file-product" style="display:none" accept="*/*" multiple onchange="handleUpload(event,'product')" />
-          <textarea class="input-box" id="input-product" placeholder="描述你的需求或想法…" onkeydown="onKey(event,'product')" rows="1"></textarea>
-          <button class="send-btn" id="send-product" onclick="sendMsg('product')">➤</button>
-        </div>
+      <!-- 右：进度 + 结果 -->
+      <div style="flex:1;min-width:280px;">
+        <div id="sk-log" style="background:var(--g800);border:1px solid var(--border);border-radius:10px;padding:16px;min-height:120px;font-size:12px;font-family:monospace;color:var(--g400);display:none;"></div>
+        <div id="sk-result-list" style="margin-top:14px;display:flex;flex-direction:column;gap:10px;"></div>
       </div>
     </div>
-    <div class="ctx-panel">
-      <div class="ctx-sec">
-        <div class="ctx-lbl">驻场成员</div>
-        <div id="ctx-members-product"></div>
+    <!-- Skill 库列表 -->
+    <div style="margin-top:28px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <div class="sec-title" style="margin:0;">Skill 库</div>
+        <button onclick="loadSkillLibrary()" style="background:none;border:1px solid var(--border);border-radius:6px;color:var(--g400);font-size:11px;padding:4px 10px;cursor:pointer;">刷新</button>
       </div>
-      <div class="ctx-sec">
-        <div class="ctx-lbl">流程进度</div>
-        <div class="task-item"><div class="task-dot pending"></div><div class="task-txt">需求背景确认</div></div>
-        <div class="task-item"><div class="task-dot pending"></div><div class="task-txt">优先级排序</div></div>
-        <div class="task-item"><div class="task-dot pending"></div><div class="task-txt">工期评估</div></div>
-        <div class="task-item"><div class="task-dot pending"></div><div class="task-txt">移交技术评审</div></div>
-      </div>
-      <div class="ctx-sec">
-        <div class="ctx-lbl">操作</div>
-        <button class="ctx-btn transfer" onclick="startTransfer('product','review')">→ 移交技术评审室</button>
-        <button class="ctx-btn" onclick="clearRoom()">🗑 清空记录</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ── 技术评审室 ── -->
-  <div class="chat-view" id="room-review">
-    <div class="chat-main">
-      <div class="chat-msgs" id="msgs-review">
-        <div class="msg-sys" id="msg-sys-review"><span>技术评审室 · 加载中…</span></div>
-      </div>
-      <div class="chat-input">
-        <div class="at-bar">
-          <span class="at-lbl">@</span>
-          <div class="at-chip active" data-key="" onclick="setAt(this,'review','')">全员</div>
-          <span id="at-chips-review"></span>
-        </div>
-        <div class="attach-bar" id="attach-review"></div>
-        <div class="input-row">
-          <button class="upload-btn" onclick="triggerUpload('review')" title="上传文档或图片">📎</button>
-          <input type="file" id="file-review" style="display:none" accept="*/*" multiple onchange="handleUpload(event,'review')" />
-          <textarea class="input-box" id="input-review" placeholder="粘贴代码、API 设计或技术方案…" onkeydown="onKey(event,'review')" rows="1"></textarea>
-          <button class="send-btn" id="send-review" onclick="sendMsg('review')">➤</button>
-        </div>
-      </div>
-    </div>
-    <div class="ctx-panel">
-      <div class="ctx-sec">
-        <div class="ctx-lbl">驻场成员</div>
-        <div id="ctx-members-review"></div>
-      </div>
-      <div class="ctx-sec">
-        <div class="ctx-lbl">流程进度</div>
-        <div class="task-item"><div class="task-dot pending"></div><div class="task-txt">方案初审</div></div>
-        <div class="task-item"><div class="task-dot pending"></div><div class="task-txt">安全评估</div></div>
-        <div class="task-item"><div class="task-dot pending"></div><div class="task-txt">风险确认</div></div>
-        <div class="task-item"><div class="task-dot pending"></div><div class="task-txt">移交算法实验室</div></div>
-      </div>
-      <div class="ctx-sec">
-        <div class="ctx-lbl">操作</div>
-        <button class="ctx-btn transfer" onclick="startTransfer('review','algo')">→ 移交算法实验室</button>
-        <button class="ctx-btn" onclick="clearRoom()">🗑 清空记录</button>
+      <div id="sk-library" style="display:flex;flex-wrap:wrap;gap:10px;">
+        <div style="color:var(--g400);font-size:13px;">加载中…</div>
       </div>
     </div>
   </div>
 
-  <!-- ── 算法实验室 ── -->
-  <div class="chat-view" id="room-algo">
-    <div class="chat-main">
-      <div class="chat-msgs" id="msgs-algo">
-        <div class="msg-sys" id="msg-sys-algo"><span>算法实验室 · 加载中…</span></div>
-      </div>
-      <div class="chat-input">
-        <div class="at-bar">
-          <span class="at-lbl">@</span>
-          <div class="at-chip active" data-key="" onclick="setAt(this,'algo','')">全员</div>
-          <span id="at-chips-algo"></span>
-        </div>
-        <div class="attach-bar" id="attach-algo"></div>
-        <div class="input-row">
-          <button class="upload-btn" onclick="triggerUpload('algo')" title="上传文档或图片">📎</button>
-          <input type="file" id="file-algo" style="display:none" accept="*/*" multiple onchange="handleUpload(event,'algo')" />
-          <textarea class="input-box" id="input-algo" placeholder="描述你的业务问题或实验目标…" onkeydown="onKey(event,'algo')" rows="1"></textarea>
-          <button class="send-btn" id="send-algo" onclick="sendMsg('algo')">➤</button>
-        </div>
-      </div>
-    </div>
-    <div class="ctx-panel">
-      <div class="ctx-sec">
-        <div class="ctx-lbl">驻场成员</div>
-        <div id="ctx-members-algo"></div>
-      </div>
-      <div class="ctx-sec">
-        <div class="ctx-lbl">实验进度</div>
-        <div class="task-item"><div class="task-dot pending"></div><div class="task-txt">问题诊断</div></div>
-        <div class="task-item"><div class="task-dot pending"></div><div class="task-txt">实验方案设计</div></div>
-        <div class="task-item"><div class="task-dot pending"></div><div class="task-txt">A/B 实施</div></div>
-        <div class="task-item"><div class="task-dot pending"></div><div class="task-txt">结果分析</div></div>
-      </div>
-      <div class="ctx-sec">
-        <div class="ctx-lbl">操作</div>
-        <button class="ctx-btn" onclick="clearRoom()">🗑 清空记录</button>
-      </div>
-    </div>
-  </div>
+  <!-- Chat rooms rendered dynamically here -->
+  <div id="dynamic-rooms"></div>
 </div>
 
 <!-- ── 移交弹窗 ── -->
-<div class="transfer-overlay hidden" id="transfer-overlay">
-  <div class="transfer-modal">
-    <h2 id="transfer-title">正在移交…</h2>
-    <div class="transfer-progress" id="transfer-progress">正在生成移交摘要，请稍候…</div>
+<div class="overlay hidden" id="transfer-overlay">
+  <div class="modal transfer-modal">
+    <div class="modal-hdr"><h2 id="transfer-title">正在移交…</h2></div>
+    <div style="padding:12px 20px;">
+      <div class="transfer-progress" id="transfer-progress" style="padding:0;">正在生成移交摘要，请稍候…</div>
+    </div>
     <div class="transfer-summary-box" id="transfer-summary" style="display:none;"></div>
-    <div class="transfer-actions">
+    <div class="modal-footer">
       <button class="btn-cancel" id="transfer-cancel" onclick="cancelTransfer()" style="display:none;">取消</button>
-      <button class="btn-ok" id="transfer-ok" onclick="confirmTransfer()" style="display:none;">进入目标房间 →</button>
+      <button class="btn-primary" id="transfer-ok" onclick="confirmTransfer()" style="display:none;">进入目标房间 →</button>
     </div>
   </div>
 </div>
 
 <!-- ── 成员编辑弹窗 ── -->
-<div class="agent-overlay hidden" id="agent-overlay">
-  <div class="agent-modal">
-    <div class="am-header">
+<div class="overlay hidden" id="agent-overlay">
+  <div class="modal" style="width:620px;max-width:96vw;max-height:90vh;display:flex;flex-direction:column;">
+    <div class="modal-hdr">
       <h2 id="am-title">编辑成员</h2>
-      <button class="am-close" onclick="closeAgentModal()">✕</button>
+      <button class="modal-close" onclick="closeAgentModal()">✕</button>
     </div>
     <div class="am-tabs">
       <div class="am-tab active" onclick="switchAmTab('basic')">基本信息</div>
       <div class="am-tab" onclick="switchAmTab('persona')">Persona</div>
       <div class="am-tab" onclick="switchAmTab('work')">Work</div>
     </div>
-    <div class="am-body">
+    <div style="flex:1;overflow-y:auto;padding:16px 20px;">
       <div class="am-tab-panel active" id="am-panel-basic">
-        <div class="am-field">
-          <div class="am-label">姓名</div>
-          <input class="am-input" id="am-name" placeholder="显示名称" />
-        </div>
-        <div class="am-field">
-          <div class="am-label">角色 / 职位</div>
-          <input class="am-input" id="am-role" placeholder="如：后端技术、安全、产品视角" />
-        </div>
-        <div class="am-field">
-          <div class="am-label">专注点</div>
-          <input class="am-input" id="am-focus" placeholder="如：代码质量、接口设计、N+1 查询" />
-        </div>
-        <div class="am-field">
-          <div class="am-label">所属房间</div>
-          <div class="am-rooms" id="am-rooms">
-            <label class="am-room-cb"><input type="checkbox" value="product" /> 需求讨论室</label>
-            <label class="am-room-cb"><input type="checkbox" value="review" /> 技术评审室</label>
-            <label class="am-room-cb"><input type="checkbox" value="algo" /> 算法实验室</label>
+        <div class="modal-field" style="display:flex;align-items:center;gap:16px;margin-bottom:16px;">
+          <div id="am-avatar-preview" style="width:56px;height:56px;border-radius:50%;background:#94a3b8;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;color:#fff;flex-shrink:0;overflow:hidden;cursor:pointer;border:2px solid var(--border);" onclick="document.getElementById('am-avatar-file').click()"></div>
+          <div>
+            <div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:4px;">头像</div>
+            <button class="btn-cancel" style="font-size:11px;padding:4px 10px;" onclick="document.getElementById('am-avatar-file').click()">上传图片</button>
+            <button class="btn-cancel" style="font-size:11px;padding:4px 10px;margin-left:6px;" id="am-avatar-clear" onclick="clearAvatar()">移除</button>
+            <input type="file" id="am-avatar-file" style="display:none" accept="image/*" onchange="handleAvatarUpload(event)" />
           </div>
         </div>
-        <div class="am-field">
-          <div class="am-label">专属 API Key <span style="font-size:10px;color:var(--g400);font-weight:400">（留空则使用全局环境变量）</span></div>
-          <input class="am-input" id="am-apikey" type="password" placeholder="sk-ant-..." autocomplete="off" />
+        <div class="modal-field"><div class="modal-label">姓名</div><input class="modal-input" id="am-name" placeholder="显示名称" /></div>
+        <div class="modal-field"><div class="modal-label">角色 / 职位</div><input class="modal-input" id="am-role" placeholder="如：后端技术、安全、产品" /></div>
+        <div class="modal-field"><div class="modal-label">专注点</div><input class="modal-input" id="am-focus" placeholder="如：代码质量、接口设计" /></div>
+        <div class="modal-field">
+          <div class="modal-label">所属房间</div>
+          <div class="am-rooms" id="am-rooms"></div>
+        </div>
+        <div class="modal-field">
+          <div class="modal-label">专属 API Key <span style="font-size:10px;color:var(--g400);font-weight:400">（留空则使用全局）</span></div>
+          <input class="modal-input" id="am-apikey" type="password" placeholder="sk-ant-..." autocomplete="off" />
         </div>
       </div>
       <div class="am-tab-panel" id="am-panel-persona">
-        <div class="am-field">
-          <div class="am-label">Persona — 性格与说话风格（persona.md）</div>
-          <textarea class="am-textarea" id="am-persona" placeholder="描述这个人的性格、口头禅、表达风格…"></textarea>
+        <div class="modal-field">
+          <div class="modal-label">Persona — 性格与说话风格（persona.md）</div>
+          <textarea class="modal-textarea" id="am-persona" style="min-height:320px;" placeholder="描述这个人的性格、口头禅、表达风格…"></textarea>
         </div>
       </div>
       <div class="am-tab-panel" id="am-panel-work">
-        <div class="am-field">
-          <div class="am-label">Work — 职责与技术规范（work.md）</div>
-          <textarea class="am-textarea" id="am-work" placeholder="描述这个人的职责范围、技术规范、工作流程…"></textarea>
+        <div class="modal-field">
+          <div class="modal-label">Work — 职责与技术规范（work.md）</div>
+          <textarea class="modal-textarea" id="am-work" style="min-height:320px;" placeholder="描述这个人的职责范围、技术规范、工作流程…"></textarea>
         </div>
       </div>
     </div>
-    <div class="am-footer">
-      <button class="am-cancel" onclick="closeAgentModal()">取消</button>
-      <button class="am-save" id="am-save" onclick="saveAgent()">保存</button>
+    <div class="modal-footer">
+      <button class="btn-danger" id="am-delete" onclick="deleteAgent()" style="display:none;margin-right:auto;">删除成员</button>
+      <button class="btn-cancel" onclick="closeAgentModal()">取消</button>
+      <button class="btn-primary" id="am-save" onclick="saveAgent()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── 房间创建/编辑弹窗 ── -->
+<div class="overlay hidden" id="room-overlay">
+  <div class="modal room-modal">
+    <div class="modal-hdr">
+      <h2 id="rm-title">新建房间</h2>
+      <button class="modal-close" onclick="closeRoomModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-field">
+        <div class="modal-label">房间名称</div>
+        <input class="modal-input" id="rm-name" placeholder="如：产品评审室、算法组" />
+      </div>
+      <div class="modal-field">
+        <div class="modal-label">描述（可选）</div>
+        <input class="modal-input" id="rm-desc" placeholder="这个房间的用途…" />
+      </div>
+      <div class="modal-field">
+        <div class="modal-label">成员（可多选）</div>
+        <div id="rm-members" style="display:flex;flex-wrap:wrap;gap:8px;max-height:160px;overflow-y:auto;"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-danger" id="rm-delete" onclick="deleteRoom()" style="display:none;margin-right:auto;">删除房间</button>
+      <button class="btn-cancel" onclick="closeRoomModal()">取消</button>
+      <button class="btn-primary" id="rm-save" onclick="saveRoom()">创建</button>
     </div>
   </div>
 </div>
 
 <script>
-// ── 状态 ────────────────────────────────────────────────────────────────────
+// ── 全局状态 ─────────────────────────────────────────────────────────────────
 const MODEL = "claude-sonnet-4-6";
 let currentRoom = null;
-let atTargets = { product: "", review: "", algo: "" };  // "" = 全员
 let pendingTransferTo = null;
 let activeEs = null;
-// 每个房间的待发附件（上传完成后存储）
-const pendingAttachments = { product: [], review: [], algo: [] };
+let _editingRoomId = null;  // null = 新建
+let _editingAgentKey = null;
 
-// 角色 avatar 颜色映射（name → inline style 颜色），由 refreshSidebarMembers 维护
-const NAME_TO_COLOR = {};
-const NAMES = {};  // 动态填充，key → 显示名
+// 每个房间的待发附件、@ 选择
+const pendingAttachments = {};
+const atTargets = {};
 
-// ── 导航 ────────────────────────────────────────────────────────────────────
-const ROOM_META = {
-  product: { title:"需求讨论室", sub:"", icon:"💡", color:"purple", action:"💡 新需求" },
-  review:  { title:"技术评审室", sub:"", icon:"🔍", color:"blue",   action:"🔍 提交评审" },
-  algo:    { title:"算法实验室", sub:"", icon:"🧪", color:"green",  action:"🧪 新实验" },
+const AV_COLOR_MAP = {
+  blue:"#6366f1", cyan:"#38bdf8", orange:"#fb923c", green:"#34d399", gray:"#94a3b8"
 };
+const NAME_TO_COLOR = {};
+const NAME_TO_AVATAR = {};
+let _allAgents = [];
+let _allRooms  = [];
 
-function showDashboard() {
-  document.querySelectorAll(".page,.chat-view").forEach(el => {
-    el.classList.remove("active"); el.style.display = "";
+// ── 数据加载 ─────────────────────────────────────────────────────────────────
+async function loadAll() {
+  [_allAgents, _allRooms] = await Promise.all([
+    fetch("/api/agents").then(r => r.json()),
+    fetch("/api/rooms").then(r => r.json()),
+  ]);
+  for (const ag of _allAgents) {
+    NAME_TO_COLOR[ag.name]  = AV_COLOR_MAP[ag.color] || "#94a3b8";
+    NAME_TO_AVATAR[ag.name] = ag.avatar || "";
+  }
+  renderSidebar();
+  renderDashboard();
+  syncDynamicRooms();
+}
+
+// ── SIDEBAR ──────────────────────────────────────────────────────────────────
+function renderSidebar() {
+  const list = document.getElementById("sb-rooms-list");
+  list.innerHTML = _allRooms.map(room => {
+    const isActive = currentRoom === room.id;
+    return `<div class="sb-room-item${isActive ? " active" : ""}" onclick="showRoom('${room.id}')">
+      <div class="sb-room-dot"></div>
+      <span class="sb-room-name">${escHtml(room.name)}</span>
+      <span class="sb-room-count">${room.members.length}</span>
+    </div>`;
+  }).join("") + (
+    _allRooms.length === 0
+      ? `<div style="padding:8px 10px;font-size:11px;color:var(--g500);">暂无房间，点击 ＋ 创建</div>`
+      : ""
+  );
+}
+
+// ── DASHBOARD ────────────────────────────────────────────────────────────────
+function renderDashboard() {
+  document.getElementById("stat-rooms").textContent  = _allRooms.length;
+  document.getElementById("stat-agents").textContent = _allAgents.length;
+
+  const grid = document.getElementById("dash-rooms-grid");
+  if (!_allRooms.length) {
+    grid.innerHTML = `<div style="color:var(--g400);font-size:13px;grid-column:1/-1;">暂无房间，点击右上角「新建房间」开始</div>`;
+    return;
+  }
+  const icons = ["💬","🔬","💡","🛠","🎯","📊","🚀","🔍"];
+  grid.innerHTML = _allRooms.map((room, i) => {
+    const memberAvatars = room.members.slice(0, 5).map(key => {
+      const ag = _allAgents.find(a => a.key === key);
+      if (!ag) return "";
+      if (ag.avatar) return `<div class="axs" style="background:#f1f5f9;overflow:hidden;"><img src="${ag.avatar}" style="width:100%;height:100%;object-fit:cover;" /></div>`;
+      const col = AV_COLOR_MAP[ag.color] || "#94a3b8";
+      return `<div class="axs" style="background:linear-gradient(135deg,${col},${col}aa)">${(ag.name||key)[0]}</div>`;
+    }).join("");
+    return `<div class="room-card" onclick="showRoom('${room.id}')">
+      <button class="room-card-edit" onclick="event.stopPropagation();openEditRoomModal('${room.id}')" title="编辑房间">✏️</button>
+      <div class="room-card-icon">${icons[i % icons.length]}</div>
+      <h3>${escHtml(room.name)}</h3>
+      <div class="room-card-desc">${escHtml(room.description || "点击进入房间开始协作")}</div>
+      <div class="room-card-meta">
+        <div class="avs">${memberAvatars}</div>
+        <div class="room-card-meta-txt">${room.members.length} 人驻场</div>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+// ── 动态聊天室 DOM ────────────────────────────────────────────────────────────
+function syncDynamicRooms() {
+  const container = document.getElementById("dynamic-rooms");
+  const existingIds = new Set([...container.querySelectorAll(".chat-view")].map(el => el.dataset.roomId));
+  const currentIds  = new Set(_allRooms.map(r => r.id));
+
+  // 删除不再存在的
+  existingIds.forEach(id => {
+    if (!currentIds.has(id)) container.querySelector(`[data-room-id="${id}"]`)?.remove();
   });
+
+  // 新增不存在的
+  for (const room of _allRooms) {
+    if (!existingIds.has(room.id)) {
+      const el = buildRoomDOM(room);
+      container.appendChild(el);
+      pendingAttachments[room.id] = pendingAttachments[room.id] || [];
+      atTargets[room.id] = atTargets[room.id] || "";
+    }
+  }
+
+  // 更新每个房间的成员区域
+  for (const room of _allRooms) {
+    updateRoomMeta(room);
+  }
+}
+
+function buildRoomDOM(room) {
+  const div = document.createElement("div");
+  div.className = "chat-view";
+  div.dataset.roomId = room.id;
+  div.id = `room-${room.id}`;
+  div.innerHTML = `
+    <div class="fp-actbar" id="fp-actbar-${room.id}">
+      <button class="fp-ab-btn" id="fp-toggle-${room.id}" onclick="toggleFilesPanel('${room.id}')" title="资源管理器">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+    <div class="files-panel collapsed" id="fp-${room.id}">
+      <div class="fp-section-hdr">
+        <span class="fp-section-title">资源管理器</span>
+        <button class="fp-section-more" title="更多操作">···</button>
+      </div>
+      <div class="fp-header">
+        <span class="fp-header-arrow">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </span>
+        <span class="fp-title" onclick="toggleFilesPanel('${room.id}')">${escHtml(room.name)}</span>
+        <div class="fp-actions">
+          <button class="fp-act" onclick="fpNewFile('${room.id}')" title="新建文件">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M9.5 1.5H4a1 1 0 00-1 1v11a1 1 0 001 1h8a1 1 0 001-1V6.5L9.5 1.5z" stroke="currentColor" stroke-width="1.1"/><path d="M9.5 1.5V6.5H13.5" stroke="currentColor" stroke-width="1.1"/><path d="M8 9v4M6 11h4" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg>
+          </button>
+          <button class="fp-act" onclick="fpNewFolder('${room.id}')" title="新建文件夹">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M1.5 4.5a1 1 0 011-1h3.4l1.2 1.4H13.5a1 1 0 011 1V12a1 1 0 01-1 1h-11a1 1 0 01-1-1V4.5z" stroke="currentColor" stroke-width="1.1"/><path d="M8 8v4M6 10h4" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg>
+          </button>
+          <button class="fp-act" onclick="fpUpload('${room.id}')" title="上传文件">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2v8M5 5l3-3 3 3" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/><path d="M2.5 11v1.5a1 1 0 001 1h9a1 1 0 001-1V11" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg>
+          </button>
+        </div>
+      </div>
+      <input type="file" id="fp-upload-${room.id}" style="display:none" multiple onchange="fpHandleUpload(event,'${room.id}')" />
+      <div class="fp-tree" id="fp-tree-${room.id}"></div>
+      <div class="fp-preview" id="fp-preview-${room.id}">
+        <div class="fp-preview-hdr">
+          <span id="fp-preview-name-${room.id}">预览</span>
+          <button class="fp-act" onclick="fpClosePreview('${room.id}')">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 2l10 10M12 2L2 12" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+          </button>
+        </div>
+        <div class="fp-preview-body" id="fp-preview-body-${room.id}"></div>
+        <button class="fp-send-btn" id="fp-send-btn-${room.id}" onclick="fpSendToChat('${room.id}')">发送到对话</button>
+      </div>
+    </div>
+    <div class="chat-main">
+      <div class="chat-msgs" id="msgs-${room.id}">
+        <div class="msg-sys" id="msg-sys-${room.id}"><span>${escHtml(room.name)} · 加载中…</span></div>
+        <div class="empty-state" id="empty-${room.id}">
+          <div class="empty-icon">💬</div>
+          <div class="empty-title">开始你的第一条消息</div>
+          <div class="empty-desc">向房间里的 AI 成员发送消息，他们会从各自专业角度回应</div>
+          <div class="empty-hints">
+            <div class="empty-hint">💡 @全员 — 让所有成员并行回复</div>
+            <div class="empty-hint">💡 @某人 — 点名指定成员回复</div>
+            <div class="empty-hint">💡 📎 — 上传图片或文本附件</div>
+          </div>
+        </div>
+      </div>
+      <div class="chat-input">
+        <div class="at-bar">
+          <span class="at-lbl">@</span>
+          <div class="at-chip active" data-key="" onclick="setAt(this,'${room.id}','')">全员</div>
+          <span id="at-chips-${room.id}"></span>
+        </div>
+        <div class="attach-bar" id="attach-${room.id}"></div>
+        <div class="input-row">
+          <button class="upload-btn" onclick="triggerUpload('${room.id}')" title="上传文件">📎</button>
+          <input type="file" id="file-${room.id}" style="display:none" accept="*/*" multiple onchange="handleUpload(event,'${room.id}')" />
+          <textarea class="input-box" id="input-${room.id}" placeholder="输入消息…" onkeydown="onKey(event,'${room.id}')" rows="1"></textarea>
+          <button class="send-btn" id="send-${room.id}" onclick="sendMsg('${room.id}')">➤</button>
+        </div>
+      </div>
+    </div>
+    <div class="ctx-panel">
+      <div class="ctx-sec">
+        <div class="ctx-lbl">驻场成员</div>
+        <div id="ctx-members-${room.id}"></div>
+      </div>
+      <div class="ctx-sec">
+        <div class="ctx-lbl">操作</div>
+        <div id="ctx-transfer-btns-${room.id}"></div>
+        <button class="ctx-btn" onclick="clearRoom()">🗑 清空记录</button>
+        <button class="ctx-btn" onclick="openEditRoomModal('${room.id}')">✏️ 编辑房间</button>
+      </div>
+    </div>`;
+  return div;
+}
+
+function updateRoomMeta(room) {
+  // 驻场成员面板
+  const ctxEl = document.getElementById(`ctx-members-${room.id}`);
+  if (ctxEl) {
+    ctxEl.innerHTML = room.members.map(key => {
+      const ag = _allAgents.find(a => a.key === key);
+      if (!ag) return "";
+      const col = AV_COLOR_MAP[ag.color] || "#94a3b8";
+      const avBg = ag.avatar ? "background:#f1f5f9" : `background:linear-gradient(135deg,${col},${col}aa)`;
+      const avContent = ag.avatar ? `<img src="${ag.avatar}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" /><div class="ctx-online"></div>` : `<div class="ctx-online"></div>${(ag.name||key)[0]}`;
+      return `<div class="ctx-member">
+        <div class="ctx-av" style="${avBg}">${avContent}</div>
+        <div><div class="ctx-mname">${escHtml(ag.name)}</div><div class="ctx-mrole">${escHtml(ag.role)}</div></div>
+      </div>`;
+    }).join("") || `<div style="font-size:11px;color:var(--g400);">暂无成员</div>`;
+  }
+
+  // @ 标签
+  const chipsEl = document.getElementById(`at-chips-${room.id}`);
+  if (chipsEl) {
+    chipsEl.innerHTML = room.members.map(key => {
+      const ag = _allAgents.find(a => a.key === key);
+      if (!ag) return "";
+      const col = AV_COLOR_MAP[ag.color] || "#94a3b8";
+      return `<div class="at-chip" data-key="${key}" onclick="setAt(this,'${room.id}','${key}')"><div class="at-dot" style="background:${col}"></div>${escHtml(ag.name)}</div>`;
+    }).join("");
+  }
+
+  // 移交按钮：其他所有房间
+  const xferEl = document.getElementById(`ctx-transfer-btns-${room.id}`);
+  if (xferEl) {
+    const others = _allRooms.filter(r => r.id !== room.id);
+    xferEl.innerHTML = others.map(r =>
+      `<button class="ctx-btn transfer" onclick="startTransfer('${room.id}','${r.id}')">→ 移交到 ${escHtml(r.name)}</button>`
+    ).join("");
+  }
+
+  // msg-sys
+  const sysEl = document.getElementById(`msg-sys-${room.id}`);
+  if (sysEl) {
+    const names = room.members.map(k => (_allAgents.find(a => a.key === k)?.name || k)).join("、");
+    sysEl.innerHTML = `<span>${escHtml(room.name)} · ${names || "暂无成员"} 驻场</span>`;
+  }
+}
+
+// ── 导航 ─────────────────────────────────────────────────────────────────────
+function showDashboard() {
+  document.querySelectorAll(".page,.chat-view").forEach(el => el.classList.remove("active"));
   document.getElementById("page-dashboard").classList.add("active");
+  document.getElementById("dynamic-rooms").classList.remove("visible");
   document.querySelectorAll(".nav-item").forEach(el => el.classList.remove("active"));
   document.getElementById("nav-dashboard").classList.add("active");
   document.getElementById("tb-title").textContent = "首页";
-  document.getElementById("tb-sub").textContent = "欢迎回来，今天的工作一切顺利";
-  document.getElementById("btn-action").textContent = "＋ 开始讨论";
-  document.getElementById("btn-action").onclick = () => showRoom("product");
-  document.getElementById("btn-clear").style.display = "none";
+  document.getElementById("tb-sub").textContent   = "管理你的 AI 工作台";
+  document.getElementById("tb-right").innerHTML =
+    `<button class="tb-btn primary" onclick="openCreateRoomModal()">＋ 新建房间</button>`;
   currentRoom = null;
+  renderSidebar();
+  renderDashboard();
 }
 
 function showRoom(roomId) {
-  document.querySelectorAll(".page,.chat-view").forEach(el => {
-    el.classList.remove("active"); el.style.display = "";
-  });
-  document.getElementById("room-" + roomId).classList.add("active");
+  document.querySelectorAll(".page,.chat-view").forEach(el => el.classList.remove("active"));
+  document.getElementById("dynamic-rooms").classList.add("visible");
+  const roomEl = document.getElementById(`room-${roomId}`);
+  if (!roomEl) return;
+  roomEl.classList.add("active");
   document.querySelectorAll(".nav-item").forEach(el => el.classList.remove("active"));
-  document.getElementById("nav-" + roomId)?.classList.add("active");
-  const m = ROOM_META[roomId];
-  document.getElementById("tb-title").textContent = m.title;
-  document.getElementById("tb-sub").textContent = m.sub;
-  document.getElementById("btn-action").textContent = m.action;
-  document.getElementById("btn-action").onclick = () => focusInput(roomId);
-  document.getElementById("btn-clear").style.display = "inline-flex";
+  document.querySelectorAll(".sb-room-item").forEach(el => el.classList.remove("active"));
+  const room = _allRooms.find(r => r.id === roomId);
+  document.getElementById("tb-title").textContent = room?.name || roomId;
+  document.getElementById("tb-sub").textContent   = `${room?.members?.length || 0} 人驻场`;
+  document.getElementById("tb-right").innerHTML =
+    `<button class="tb-btn" onclick="clearRoom()">🗑 清空</button>
+     <button class="tb-btn" onclick="openEditRoomModal('${roomId}')">✏️ 编辑</button>`;
   currentRoom = roomId;
+  renderSidebar();
   loadHistory(roomId);
 }
 
-function focusInput(roomId) {
-  document.getElementById("input-" + roomId)?.focus();
+function showMembers() {
+  document.querySelectorAll(".page,.chat-view").forEach(el => el.classList.remove("active"));
+  document.getElementById("dynamic-rooms").classList.remove("visible");
+  document.getElementById("page-members").classList.add("active");
+  document.querySelectorAll(".nav-item").forEach(el => el.classList.remove("active"));
+  document.getElementById("nav-members").classList.add("active");
+  document.getElementById("tb-title").textContent = "成员管理";
+  document.getElementById("tb-sub").textContent   = "查看、编辑所有 AI 成员";
+  document.getElementById("tb-right").innerHTML =
+    `<button class="tb-btn primary" onclick="openCreateAgentModal()">＋ 新建成员</button>`;
+  currentRoom = null;
+  renderSidebar();
+  loadMembers();
+}
+
+function showSkills() {
+  document.querySelectorAll(".page,.chat-view").forEach(el => el.classList.remove("active"));
+  document.getElementById("dynamic-rooms").classList.remove("visible");
+  document.getElementById("page-skills").classList.add("active");
+  document.querySelectorAll(".nav-item").forEach(el => el.classList.remove("active"));
+  document.getElementById("nav-skills").classList.add("active");
+  document.getElementById("tb-title").textContent = "Skill 提取";
+  document.getElementById("tb-sub").textContent   = "从飞书、URL 或文本中自动提炼可复用 Skill";
+  document.getElementById("tb-right").innerHTML = "";
+  currentRoom = null;
+  renderSidebar();
+  loadSkillLibrary();
+}
+
+// ── Skill 提取 ────────────────────────────────────────────────────────────────
+let _skCurrentSrc = "text";
+
+function skSrcSelect(type) {
+  _skCurrentSrc = type;
+  document.querySelectorAll(".sk-src-btn").forEach(b => b.classList.remove("active"));
+  event.target.classList.add("active");
+  ["text","url","feishu"].forEach(t => {
+    document.getElementById("sk-panel-" + t).style.display = t === type ? "" : "none";
+  });
+}
+
+async function runSkillExtract() {
+  const btn = document.getElementById("sk-run-btn");
+  const log  = document.getElementById("sk-log");
+  const list = document.getElementById("sk-result-list");
+  log.innerHTML = "";
+  list.innerHTML = "";
+  log.style.display = "";
+  btn.disabled = true;
+  btn.textContent = "提取中…";
+
+  const body = { source_type: _skCurrentSrc };
+  if (_skCurrentSrc === "text") body.text = document.getElementById("sk-text").value;
+  else if (_skCurrentSrc === "url") body.url = document.getElementById("sk-url").value.trim();
+  else {
+    body.feishu_app_id     = document.getElementById("sk-fs-appid").value.trim();
+    body.feishu_app_secret = document.getElementById("sk-fs-secret").value.trim();
+    body.feishu_doc_token  = document.getElementById("sk-fs-doctoken").value.trim() || undefined;
+    body.feishu_wiki_token = document.getElementById("sk-fs-wikitoken").value.trim() || undefined;
+  }
+
+  const resp = await fetch("/api/skill-engine/extract", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify(body),
+  });
+  const reader = resp.body.getReader();
+  const dec = new TextDecoder();
+  let buf = "";
+  while (true) {
+    const {done, value} = await reader.read();
+    if (done) break;
+    buf += dec.decode(value, {stream: true});
+    let idx;
+    while ((idx = buf.indexOf("\n\n")) !== -1) {
+      const chunk = buf.slice(0, idx).trim();
+      buf = buf.slice(idx + 2);
+      if (!chunk.startsWith("data:")) continue;
+      let ev;
+      try { ev = JSON.parse(chunk.slice(5)); } catch { continue; }
+      _skHandleEvent(ev, log, list);
+    }
+  }
+  btn.disabled = false;
+  btn.textContent = "🔍 开始提取 Skill";
+  loadSkillLibrary();
+}
+
+function _skHandleEvent(ev, log, list) {
+  const addLog = (msg, cls="") => {
+    const d = document.createElement("div");
+    d.className = "sk-log-line" + (cls ? " " + cls : "");
+    d.textContent = msg;
+    log.appendChild(d);
+    log.scrollTop = log.scrollHeight;
+  };
+  if (ev.type === "fetch_start") addLog(`⏳ 正在抓取内容 [${ev.source_type}]…`);
+  else if (ev.type === "fetch_done") addLog(`✅ 内容获取完成（${ev.chars} 字符）`, "ok");
+  else if (ev.type === "distill_start") addLog("🤖 AI 正在提炼 Skill…");
+  else if (ev.type === "skill_saved") {
+    addLog(`✨ 已保存：${ev.name}`, "ok");
+    const card = document.createElement("div");
+    card.className = "sk-card";
+    card.innerHTML = `<div class="sk-card-name">${escHtml(ev.name)}</div><div class="sk-card-desc">${escHtml(ev.description)}</div>`;
+    list.appendChild(card);
+  }
+  else if (ev.type === "skill_skipped") addLog(`⚠ 跳过（重复）：${ev.name}`, "skip");
+  else if (ev.type === "extract_done") addLog(`🎉 完成 — 保存 ${ev.saved} 条，跳过 ${ev.skipped} 条`, "ok");
+  else if (ev.type === "error") addLog(`❌ 错误：${ev.content}`, "err");
+}
+
+async function loadSkillLibrary() {
+  const el = document.getElementById("sk-library");
+  el.innerHTML = `<div style="color:var(--g400);font-size:13px;">加载中…</div>`;
+  const skills = await fetch("/api/skill-engine/skills").then(r => r.json()).catch(() => []);
+  if (!skills.length) {
+    el.innerHTML = `<div style="color:var(--g400);font-size:13px;">暂无 Skill，从上方提取后会出现在这里</div>`;
+    return;
+  }
+  el.innerHTML = skills.map(s => `
+    <div class="sk-card">
+      <div class="sk-card-name">${escHtml(s.name)}</div>
+      <div class="sk-card-desc">${escHtml(s.description || "")}</div>
+      <div class="sk-card-tags">${(s.tags||[]).map(t=>`<span class="sk-tag">${escHtml(t)}</span>`).join("")}</div>
+      <div style="font-size:10px;color:var(--g500);margin-top:6px;">置信度 ${((s.confidence||0)*100).toFixed(0)}%  · 使用 ${s.usage_count||0} 次</div>
+    </div>`).join("");
 }
 
 // ── 历史加载 ─────────────────────────────────────────────────────────────────
@@ -595,40 +1064,29 @@ async function loadHistory(roomId) {
     const res = await fetch(`/api/room/${roomId}/history`);
     const data = await res.json();
     const msgsEl = document.getElementById("msgs-" + roomId);
-    // 清空（保留第一条 sys msg）
     const sys = msgsEl.querySelector(".msg-sys");
+    const emptyEl = msgsEl.querySelector(".empty-state");
     msgsEl.innerHTML = "";
     if (sys) msgsEl.appendChild(sys);
-
-    // 渲染 context banner
+    if (emptyEl) msgsEl.appendChild(emptyEl);
     if (data.context) renderContextBanner(roomId, data.context);
-
-    // 重建消息气泡
-    let parallelBatch = [];
+    let batch = [];
+    let hasMessages = false;
     for (let i = 0; i < data.messages.length; i++) {
       const m = data.messages[i];
       if (m.role === "user") {
-        flushParallel(msgsEl, parallelBatch); parallelBatch = [];
+        flushParallel(msgsEl, batch); batch = [];
         appendUserBubble(msgsEl, m.content);
+        hasMessages = true;
       } else {
-        parallelBatch.push(m);
+        batch.push(m);
         const next = data.messages[i + 1];
-        if (!next || next.role === "user") {
-          flushParallel(msgsEl, parallelBatch); parallelBatch = [];
-        }
+        if (!next || next.role === "user") { flushParallel(msgsEl, batch); batch = []; hasMessages = true; }
       }
     }
+    if (hasMessages) hideEmptyState(roomId); else showEmptyState(roomId);
     scrollToBottom(roomId);
   } catch(e) { console.error(e); }
-}
-
-function flushParallel(container, batch) {
-  if (!batch.length) return;
-  if (batch.length === 1) {
-    appendAgentBubble(container, batch[0].agent, batch[0].content);
-  } else {
-    appendParallelBlock(container, batch);
-  }
 }
 
 // ── @ 选择 ───────────────────────────────────────────────────────────────────
@@ -643,48 +1101,48 @@ function onKey(e, roomId) {
   if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMsg(roomId); }
 }
 
+async function sendOptionMsg(roomId, text) {
+  const input = document.getElementById("input-" + roomId);
+  if (input) input.value = text;
+  await sendMsg(roomId);
+}
+
 async function sendMsg(roomId) {
   const input   = document.getElementById("input-" + roomId);
   const sendBtn = document.getElementById("send-" + roomId);
   const message = input.value.trim();
   const attachments = pendingAttachments[roomId] || [];
   if (!message && !attachments.length) return;
-
   input.value = "";
   sendBtn.disabled = true;
-
-  // 清空附件栏
-  const sentAttachments = [...attachments];
+  const sentAtts = [...attachments];
   pendingAttachments[roomId] = [];
   document.getElementById("attach-" + roomId).innerHTML = "";
-
   const msgsEl = document.getElementById("msgs-" + roomId);
-  appendUserBubble(msgsEl, message, sentAttachments);
+  hideEmptyState(roomId);
+  appendUserBubble(msgsEl, message, sentAtts);
   scrollToBottom(roomId);
-
-  // 创建 job（附件只传 type/filename/content/data/mime，不传 size）
-  const cleanAtts = sentAttachments.map(a => {
-    if (a.type === "image") return { type: a.type, filename: a.filename, mime: a.mime, data: a.data };
-    return { type: a.type, filename: a.filename, content: a.content };
-  });
-
+  const cleanAtts = sentAtts.map(a =>
+    a.type === "image"
+      ? { type: a.type, filename: a.filename, mime: a.mime, data: a.data }
+      : { type: a.type, filename: a.filename, content: a.content }
+  );
   const res = await fetch(`/api/room/${roomId}/chat`, {
     method: "POST",
     headers: {"Content-Type":"application/json"},
     body: JSON.stringify({ message, model: MODEL, at: atTargets[roomId] || null, attachments: cleanAtts }),
   });
   const { job_id } = await res.json();
-
-  // 准备占位容器
   const placeholder = document.createElement("div");
   msgsEl.appendChild(placeholder);
   scrollToBottom(roomId);
 
-  // SSE
   let batch = [];
+  // streaming state: track agent_name → {rowEl, rawText}
+  const streamingAgents = {};
+
   const es = new EventSource(`/api/room/${roomId}/stream/${job_id}`);
   activeEs = es;
-
   es.onmessage = (e) => {
     const ev = JSON.parse(e.data);
 
@@ -698,22 +1156,67 @@ async function sendMsg(roomId) {
         scrollToBottom(roomId);
       }
     }
+
+    if (ev.type === "token") {
+      // streaming: replace thinking bubble with live text bubble
+      const thinkEl = document.getElementById("thinking-" + ev.agent);
+      if (!streamingAgents[ev.agent]) {
+        thinkEl?.remove();
+        // create streaming bubble
+        const rowEl = appendAgentBubble(placeholder, ev.agent, "");
+        streamingAgents[ev.agent] = { rowEl, rawText: "" };
+      }
+      const st = streamingAgents[ev.agent];
+      st.rawText += ev.delta;
+      // live render markdown as tokens arrive, strip option markers and agent action blocks
+      st.rowEl.querySelector(".md-content").innerHTML = renderMarkdown(
+        st.rawText.replace(/\[多选:\s*[^\]]*\]?/g, "").replace(/\[选项:\s*[^\]]*\]?/g, "")
+          .replace(/```agent-create[\s\S]*?```/g, "").replace(/```agent-delete[\s\S]*?```/g, "")
+          .replace(/```agent-patch[\s\S]*?```/g, "").trim()
+      );
+      scrollToBottom(roomId);
+    }
+
     if (ev.type === "agent_done") {
       batch.push({ agent: ev.agent, content: ev.content });
-      const el = document.getElementById("thinking-" + ev.agent);
-      if (el) el.remove();
+      document.getElementById("thinking-" + ev.agent)?.remove();
+      // finalize streaming bubble with authoritative content
+      if (streamingAgents[ev.agent]) {
+        const st = streamingAgents[ev.agent];
+        const { text, options, multi } = parseOptions(ev.content
+          .replace(/```agent-create[\s\S]*?```/g, "").replace(/```agent-delete[\s\S]*?```/g, "")
+          .replace(/```agent-patch[\s\S]*?```/g, "").trim());
+        st.rowEl.querySelector(".md-content").innerHTML = renderMarkdown(text);
+        renderOptionButtons(st.rowEl, options, ev.agent, multi);
+        delete streamingAgents[ev.agent];
+      }
+      // auto-create / auto-delete / auto-patch agent if response contains special blocks
+      const agentDef = parseAgentCreate(ev.content);
+      if (agentDef) {
+        autoCreateAgent(agentDef, placeholder, roomId);
+      }
+      const deleteDef = parseAgentDelete(ev.content);
+      if (deleteDef) {
+        autoDeleteAgent(deleteDef, placeholder, roomId);
+      }
+      const patches = parseAgentPatch(ev.content);
+      for (const p of patches) {
+        autoApplyPatch(p, ev.agent, placeholder, roomId);
+      }
     }
-    if (ev.type === "stream_end" || ev.type === "parallel_start") {
-      // do nothing special
-    }
+
     if (ev.type === "stream_end") {
-      placeholder.innerHTML = "";
-      flushParallel(placeholder, batch);
+      // parallel responses (no token events) — flush batch
+      const hasStreamBubbles = placeholder.querySelectorAll(".msg-row").length > 0;
+      if (!hasStreamBubbles && batch.length) {
+        flushParallel(placeholder, batch);
+      }
       batch = [];
       sendBtn.disabled = false;
       scrollToBottom(roomId);
       es.close(); activeEs = null;
     }
+
     if (ev.type === "error") {
       placeholder.innerHTML = `<div style="color:#ef4444;font-size:12px;padding:8px;">错误：${ev.content}</div>`;
       sendBtn.disabled = false;
@@ -723,66 +1226,51 @@ async function sendMsg(roomId) {
   es.onerror = () => { sendBtn.disabled = false; es.close(); activeEs = null; };
 }
 
-// ── 移交 ────────────────────────────────────────────────────────────────────
+// ── 移交 ─────────────────────────────────────────────────────────────────────
 async function startTransfer(fromRoom, toRoom) {
-  const overlay = document.getElementById("transfer-overlay");
-  const title   = document.getElementById("transfer-title");
-  const prog    = document.getElementById("transfer-progress");
-  const sumBox  = document.getElementById("transfer-summary");
-  const btnOk   = document.getElementById("transfer-ok");
-  const btnCancel = document.getElementById("transfer-cancel");
-
-  const roomNames = { product:"需求讨论室", review:"技术评审室", algo:"算法实验室" };
-  title.textContent = `移交：${roomNames[fromRoom]} → ${roomNames[toRoom]}`;
-  prog.textContent = "正在生成移交摘要，请稍候…";
-  sumBox.style.display = "none"; sumBox.textContent = "";
-  btnOk.style.display = "none"; btnCancel.style.display = "none";
-
-  overlay.classList.remove("hidden");
+  const fromName = _allRooms.find(r => r.id === fromRoom)?.name || fromRoom;
+  const toName   = _allRooms.find(r => r.id === toRoom)?.name   || toRoom;
+  document.getElementById("transfer-title").textContent = `移交：${fromName} → ${toName}`;
+  document.getElementById("transfer-progress").textContent = "正在生成移交摘要，请稍候…";
+  document.getElementById("transfer-summary").style.display = "none";
+  document.getElementById("transfer-ok").style.display     = "none";
+  document.getElementById("transfer-cancel").style.display = "none";
+  document.getElementById("transfer-overlay").classList.remove("hidden");
   pendingTransferTo = toRoom;
-
-  // 创建 transfer job
   const res = await fetch(`/api/room/${fromRoom}/transfer`, {
     method: "POST",
     headers: {"Content-Type":"application/json"},
     body: JSON.stringify({ to_room_id: toRoom, model: MODEL }),
   });
   if (!res.ok) {
-    prog.textContent = "移交失败：" + (await res.text());
-    btnCancel.style.display = "inline-flex";
+    document.getElementById("transfer-progress").textContent = "移交失败：" + (await res.text());
+    document.getElementById("transfer-cancel").style.display = "inline-flex";
     return;
   }
   const { job_id } = await res.json();
-
   const es = new EventSource(`/api/transfer/stream/${job_id}`);
   es.onmessage = (e) => {
     const ev = JSON.parse(e.data);
-
-    if (ev.type === "transfer_progress") {
-      prog.textContent = ev.content;
-    }
+    if (ev.type === "transfer_progress") document.getElementById("transfer-progress").textContent = ev.content;
     if (ev.type === "transfer_summary") {
-      prog.textContent = "摘要已生成，目标房间成员正在读取…";
-      sumBox.textContent = ev.summary;
-      sumBox.style.display = "block";
-    }
-    if (ev.type === "transfer_greeting_start") {
-      prog.textContent = "目标房间成员正在发表初步意见…";
+      document.getElementById("transfer-progress").textContent = "摘要已生成，目标房间成员正在读取…";
+      const box = document.getElementById("transfer-summary");
+      box.textContent = ev.summary;
+      box.style.display = "block";
     }
     if (ev.type === "transfer_done") {
-      prog.textContent = "✅ 移交完成，点击进入目标房间";
-      btnOk.style.display = "inline-flex";
-      btnCancel.style.display = "inline-flex";
+      document.getElementById("transfer-progress").textContent = "✅ 移交完成，点击进入目标房间";
+      document.getElementById("transfer-ok").style.display     = "inline-flex";
+      document.getElementById("transfer-cancel").style.display = "inline-flex";
       es.close();
     }
     if (ev.type === "error") {
-      prog.textContent = "错误：" + ev.content;
-      btnCancel.style.display = "inline-flex";
+      document.getElementById("transfer-progress").textContent = "错误：" + ev.content;
+      document.getElementById("transfer-cancel").style.display = "inline-flex";
       es.close();
     }
   };
 }
-
 function confirmTransfer() {
   document.getElementById("transfer-overlay").classList.add("hidden");
   if (pendingTransferTo) { showRoom(pendingTransferTo); pendingTransferTo = null; }
@@ -792,7 +1280,7 @@ function cancelTransfer() {
   pendingTransferTo = null;
 }
 
-// ── 清空房间 ─────────────────────────────────────────────────────────────────
+// ── 清空 ──────────────────────────────────────────────────────────────────────
 async function clearRoom() {
   if (!currentRoom) return;
   if (!confirm("确认清空该房间的对话记录？")) return;
@@ -800,27 +1288,303 @@ async function clearRoom() {
   loadHistory(currentRoom);
 }
 
+// ── 房间 CRUD 弹窗 ────────────────────────────────────────────────────────────
+function openCreateRoomModal() {
+  _editingRoomId = null;
+  document.getElementById("rm-title").textContent  = "新建房间";
+  document.getElementById("rm-save").textContent   = "创建";
+  document.getElementById("rm-name").value         = "";
+  document.getElementById("rm-desc").value         = "";
+  document.getElementById("rm-delete").style.display = "none";
+  renderRoomMembersCheckboxes([]);
+  document.getElementById("room-overlay").classList.remove("hidden");
+}
+
+function openEditRoomModal(roomId) {
+  _editingRoomId = roomId;
+  const room = _allRooms.find(r => r.id === roomId);
+  if (!room) return;
+  document.getElementById("rm-title").textContent  = "编辑房间";
+  document.getElementById("rm-save").textContent   = "保存";
+  document.getElementById("rm-name").value         = room.name;
+  document.getElementById("rm-desc").value         = room.description || "";
+  document.getElementById("rm-delete").style.display = "inline-flex";
+  renderRoomMembersCheckboxes(room.members);
+  document.getElementById("room-overlay").classList.remove("hidden");
+}
+
+function renderRoomMembersCheckboxes(selectedKeys) {
+  const container = document.getElementById("rm-members");
+  container.innerHTML = _allAgents.map(ag => {
+    const checked = selectedKeys.includes(ag.key) ? "checked" : "";
+    return `<label class="am-room-cb">
+      <input type="checkbox" value="${ag.key}" ${checked} />
+      ${escHtml(ag.name)} <span style="color:var(--g400);font-size:10px;">${escHtml(ag.role)}</span>
+    </label>`;
+  }).join("") || `<div style="font-size:12px;color:var(--g400);">暂无可用成员，先到「成员管理」新建成员</div>`;
+}
+
+function closeRoomModal() {
+  document.getElementById("room-overlay").classList.add("hidden");
+}
+
+async function saveRoom() {
+  const btn  = document.getElementById("rm-save");
+  const name = document.getElementById("rm-name").value.trim();
+  const desc = document.getElementById("rm-desc").value.trim();
+  const members = [...document.querySelectorAll("#rm-members input:checked")].map(cb => cb.value);
+  if (!name) { alert("房间名称不能为空"); return; }
+  btn.disabled = true;
+  btn.textContent = "保存中…";
+  try {
+    let res;
+    if (_editingRoomId) {
+      res = await fetch(`/api/rooms/${_editingRoomId}`, {
+        method: "PUT",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({ name, members, description: desc }),
+      });
+    } else {
+      res = await fetch("/api/rooms", {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({ name, members, description: desc }),
+      });
+    }
+    if (!res.ok) { const e = await res.json(); throw new Error(e.detail || "请求失败"); }
+    closeRoomModal();
+    await loadAll();
+    if (!_editingRoomId) {
+      const newRoom = await res.json().catch(() => null);
+    }
+  } catch(e) {
+    alert("保存失败：" + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = _editingRoomId ? "保存" : "创建";
+  }
+}
+
+async function deleteRoom() {
+  if (!_editingRoomId) return;
+  if (!confirm("确认删除该房间？此操作不可恢复。")) return;
+  const res = await fetch(`/api/rooms/${_editingRoomId}`, { method: "DELETE" });
+  if (!res.ok) { alert("删除失败"); return; }
+  closeRoomModal();
+  if (currentRoom === _editingRoomId) {
+    currentRoom = null;
+    showDashboard();
+  }
+  await loadAll();
+}
+
+// ── 成员管理 ─────────────────────────────────────────────────────────────────
+async function loadMembers() {
+  const grid = document.getElementById("members-grid");
+  grid.innerHTML = '<div style="color:var(--g400);font-size:13px;">加载中…</div>';
+  const rooms = await fetch("/api/rooms").then(r => r.json());
+  const memberRooms = {};
+  for (const room of rooms) {
+    for (const key of room.members) {
+      if (!memberRooms[key]) memberRooms[key] = [];
+      memberRooms[key].push(room.name);
+    }
+  }
+  if (!_allAgents.length) {
+    grid.innerHTML = '<div style="color:var(--g400);font-size:13px;">暂无成员</div>';
+    return;
+  }
+  grid.innerHTML = "";
+  for (const ag of _allAgents) {
+    const col = AV_COLOR_MAP[ag.color] || "#94a3b8";
+    const mcAvStyle = ag.avatar ? "background:#f1f5f9;overflow:hidden;" : `background:linear-gradient(135deg,${col},${col}aa)`;
+    const mcAvInner = ag.avatar ? `<img src="${ag.avatar}" style="width:100%;height:100%;object-fit:cover;" />` : (ag.name||ag.key)[0];
+    const roomTags = (memberRooms[ag.key] || [])
+      .map(n => `<span class="mc-room-tag">${escHtml(n)}</span>`).join("");
+    const card = document.createElement("div");
+    card.className = "member-card";
+    card.innerHTML = `
+      <div class="mc-head">
+        <div class="mc-av" style="${mcAvStyle}">${mcAvInner}</div>
+        <div><div class="mc-name">${escHtml(ag.name)}</div><div class="mc-role">${escHtml(ag.role)}</div></div>
+      </div>
+      <div class="mc-focus">${escHtml(ag.focus || "—")}</div>
+      <div class="mc-rooms">${roomTags || '<span style="font-size:11px;color:var(--g300)">未分配房间</span>'}</div>
+      <button class="mc-edit" onclick="openEditAgentModal('${ag.key}')">编辑</button>`;
+    grid.appendChild(card);
+  }
+}
+
+function setAvatarPreview(dataUrl) {
+  const el = document.getElementById("am-avatar-preview");
+  if (dataUrl) {
+    el.innerHTML = `<img src="${dataUrl}" style="width:100%;height:100%;object-fit:cover;" />`;
+    el.dataset.avatar = dataUrl;
+  } else {
+    el.innerHTML = "👤";
+    el.dataset.avatar = "";
+  }
+}
+
+function handleAvatarUpload(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => setAvatarPreview(ev.target.result);
+  reader.readAsDataURL(file);
+  e.target.value = "";
+}
+
+function clearAvatar() {
+  setAvatarPreview("");
+}
+
+function openCreateAgentModal() {
+  _editingAgentKey = null;
+  document.getElementById("am-title").textContent   = "新建成员";
+  document.getElementById("am-save").textContent    = "创建";
+  document.getElementById("am-name").value    = "";
+  document.getElementById("am-role").value    = "";
+  document.getElementById("am-focus").value   = "";
+  document.getElementById("am-persona").value = "";
+  document.getElementById("am-work").value    = "";
+  document.getElementById("am-apikey").value  = "";
+  document.getElementById("am-delete").style.display = "none";
+  setAvatarPreview("");
+  renderAgentRoomsCheckboxes([]);
+  switchAmTab("basic");
+  document.getElementById("agent-overlay").classList.remove("hidden");
+}
+
+async function openEditAgentModal(key) {
+  _editingAgentKey = key;
+  document.getElementById("am-title").textContent = "编辑成员";
+  document.getElementById("am-save").textContent  = "加载中…";
+  document.getElementById("am-save").disabled = true;
+  document.getElementById("am-delete").style.display = "none";
+  switchAmTab("basic");
+  document.getElementById("agent-overlay").classList.remove("hidden");
+  const data = await fetch(`/api/agents/${key}`).then(r => r.json());
+  document.getElementById("am-name").value    = data.name    || "";
+  document.getElementById("am-role").value    = data.role    || "";
+  document.getElementById("am-focus").value   = data.focus   || "";
+  document.getElementById("am-persona").value = data.persona || "";
+  document.getElementById("am-work").value    = data.work    || "";
+  document.getElementById("am-apikey").value  = data.api_key || "";
+  setAvatarPreview(data.avatar || "");
+  renderAgentRoomsCheckboxes(data.current_rooms || []);
+  document.getElementById("am-save").disabled = false;
+  document.getElementById("am-save").textContent = "保存";
+  const deleteBtn = document.getElementById("am-delete");
+  deleteBtn.style.display = "inline-flex";
+  deleteBtn.disabled = false;
+  deleteBtn.textContent = "删除成员";
+}
+
+function renderAgentRoomsCheckboxes(selectedRoomIds) {
+  const container = document.getElementById("am-rooms");
+  container.innerHTML = _allRooms.map(room => {
+    const checked = selectedRoomIds.includes(room.id) ? "checked" : "";
+    return `<label class="am-room-cb"><input type="checkbox" value="${room.id}" ${checked} />${escHtml(room.name)}</label>`;
+  }).join("") || `<div style="font-size:12px;color:var(--g400);">暂无房间，先创建房间</div>`;
+}
+
+function closeAgentModal() {
+  document.getElementById("agent-overlay").classList.add("hidden");
+}
+
+function switchAmTab(tab) {
+  document.querySelectorAll(".am-tab").forEach((t, i) => {
+    t.classList.toggle("active", ["basic","persona","work"][i] === tab);
+  });
+  document.querySelectorAll(".am-tab-panel").forEach(p => p.classList.remove("active"));
+  document.getElementById("am-panel-" + tab).classList.add("active");
+}
+
+async function saveAgent() {
+  const btn     = document.getElementById("am-save");
+  const name    = document.getElementById("am-name").value.trim();
+  const role    = document.getElementById("am-role").value.trim();
+  const focus   = document.getElementById("am-focus").value.trim();
+  const persona = document.getElementById("am-persona").value;
+  const work    = document.getElementById("am-work").value;
+  const api_key = document.getElementById("am-apikey").value.trim();
+  const avatar  = document.getElementById("am-avatar-preview").dataset.avatar || "";
+  const rooms   = [...document.querySelectorAll("#am-rooms input:checked")].map(cb => cb.value);
+  if (!name || !role) { alert("姓名和角色不能为空"); return; }
+  if (!persona.trim()) { alert("Persona 不能为空"); return; }
+  btn.disabled = true; btn.textContent = "保存中…";
+  try {
+    let res;
+    if (_editingAgentKey) {
+      res = await fetch(`/api/agents/${_editingAgentKey}`, {
+        method: "PUT",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({ name, role, focus, persona, work, rooms, api_key, avatar }),
+      });
+    } else {
+      res = await fetch("/api/agents", {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({ name, role, focus, persona, work, api_key, avatar }),
+      });
+    }
+    if (!res.ok) { const e = await res.json(); throw new Error(e.detail || "请求失败"); }
+    closeAgentModal();
+    await loadAll();
+    loadMembers();
+  } catch(e) {
+    alert("保存失败：" + e.message);
+    btn.disabled = false;
+    btn.textContent = _editingAgentKey ? "保存" : "创建";
+  }
+}
+
+async function deleteAgent() {
+  if (!_editingAgentKey) return;
+  const agName = document.getElementById("am-name").value || _editingAgentKey;
+  if (!confirm(`确认删除成员「${agName}」？此操作不可恢复，该成员将同时从所有房间中移除。`)) return;
+  const btn = document.getElementById("am-delete");
+  btn.disabled = true;
+  btn.textContent = "删除中…";
+  try {
+    const res = await fetch(`/api/agents/${_editingAgentKey}`, { method: "DELETE" });
+    if (!res.ok) { const e = await res.json(); throw new Error(e.detail || "删除失败"); }
+    closeAgentModal();
+    await loadAll();
+    loadMembers();
+  } catch(e) {
+    alert("删除失败：" + e.message);
+    btn.disabled = false;
+    btn.textContent = "删除成员";
+  }
+}
+
 // ── DOM 渲染辅助 ──────────────────────────────────────────────────────────────
-function avStyle(agentName) {
-  const col = NAME_TO_COLOR[agentName] || "#94a3b8";
+function avStyle(name) {
+  const col = NAME_TO_COLOR[name] || "#94a3b8";
   return `background:linear-gradient(135deg,${col},${col}cc)`;
 }
-function agentInitial(agentName) {
-  return (agentName || "?")[0];
+function agentInitial(name) { return (name || "?")[0]; }
+
+// 返回头像内部内容（img 或 首字）及背景样式
+function avInner(name) {
+  const avatar = NAME_TO_AVATAR[name];
+  if (avatar) return { style: "background:#f1f5f9", inner: `<img src="${avatar}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />` };
+  const col = NAME_TO_COLOR[name] || "#94a3b8";
+  return { style: `background:linear-gradient(135deg,${col},${col}cc)`, inner: agentInitial(name) };
 }
 
 function appendUserBubble(container, content, attachments) {
-  const attHTML = (attachments || []).map(a => {
-    if (a.type === "image") {
-      return `<img class="msg-img-thumb" src="data:${a.mime};base64,${a.data}" alt="${escHtml(a.filename)}" />`;
-    }
-    return `<span class="msg-file-tag">📄 ${escHtml(a.filename)}</span>`;
-  }).join("");
-
+  const attHTML = (attachments || []).map(a =>
+    a.type === "image"
+      ? `<img class="msg-img-thumb" src="data:${a.mime};base64,${a.data}" alt="${escHtml(a.filename)}" />`
+      : `<span class="msg-file-tag">📄 ${escHtml(a.filename)}</span>`
+  ).join("");
   const div = document.createElement("div");
   div.className = "msg-row me";
   div.innerHTML = `
-    <div class="msg-av av-me">我</div>
+    <div class="msg-av" style="background:linear-gradient(135deg,#f472b6,#db2777)">我</div>
     <div class="msg-body">
       <div class="msg-meta"><span class="msg-sender">老板</span><span>${timeNow()}</span></div>
       ${attHTML ? `<div class="msg-attachments">${attHTML}</div>` : ""}
@@ -829,33 +1593,226 @@ function appendUserBubble(container, content, attachments) {
   container.appendChild(div);
 }
 
-function appendAgentBubble(container, agentName, content) {
+function appendAgentBubble(container, agentName, content, existingEl) {
+  const { text, options, multi } = parseOptions(content);
+  const html = renderMarkdown(text);
+  if (existingEl) {
+    existingEl.querySelector(".md-content").innerHTML = html;
+    renderOptionButtons(existingEl, options, agentName, multi);
+    return existingEl;
+  }
   const div = document.createElement("div");
   div.className = "msg-row";
+  const av = avInner(agentName);
   div.innerHTML = `
-    <div class="msg-av" style="${avStyle(agentName)}">${agentInitial(agentName)}</div>
+    <div class="msg-av" style="${av.style}">${av.inner}</div>
     <div class="msg-body">
       <div class="msg-meta"><span class="msg-sender">${escHtml(agentName)}</span><span>${timeNow()}</span></div>
-      <div class="msg-bubble">${escHtml(content)}</div>
+      <div class="msg-bubble-wrap">
+        <div class="msg-bubble"><div class="md-content">${html}</div></div>
+        <button class="copy-btn" onclick="copyBubble(this)">复制</button>
+      </div>
     </div>`;
+  renderOptionButtons(div, options, agentName, multi);
   container.appendChild(div);
+  return div;
+}
+
+function parseOptions(content) {
+  const options = [];
+  let multi = false;
+  let text = content;
+
+  const multiRe = /\[多选:\s*([^\]]+)\]/g;
+  const singleRe = /\[选项:\s*([^\]]+)\]/g;
+
+  let m;
+  while ((m = multiRe.exec(content)) !== null) {
+    m[1].split("|").forEach(s => { const t = s.trim(); if (t) options.push(t); });
+    multi = true;
+  }
+  if (!multi) {
+    while ((m = singleRe.exec(content)) !== null) {
+      m[1].split("|").forEach(s => { const t = s.trim(); if (t) options.push(t); });
+    }
+  }
+
+  text = content.replace(/\[多选:\s*[^\]]+\]/g, "").replace(/\[选项:\s*[^\]]+\]/g, "").trim();
+  return { text, options, multi };
+}
+
+function parseAgentCreate(content) {
+  const m = content.match(/```agent-create\s*([\s\S]*?)```/);
+  if (!m) return null;
+  try { return JSON.parse(m[1].trim()); } catch { return null; }
+}
+
+function parseAgentDelete(content) {
+  const m = content.match(/```agent-delete\s*([\s\S]*?)```/);
+  if (!m) return null;
+  try { return JSON.parse(m[1].trim()); } catch { return null; }
+}
+
+function parseAgentPatch(content) {
+  const results = [];
+  const re = /```agent-patch\s*([\s\S]*?)```/g;
+  let m;
+  while ((m = re.exec(content)) !== null) {
+    try { results.push(JSON.parse(m[1].trim())); } catch {}
+  }
+  return results;
+}
+
+async function autoApplyPatch(def, agentNameHint, container, roomId) {
+  const key = def.key || _allAgents.find(a => a.name === (def.target || agentNameHint))?.key;
+  const displayName = def.target || agentNameHint || key;
+  const notice = document.createElement("div");
+  notice.className = "msg-sys";
+  notice.innerHTML = `<span>⚙️ 正在更新「${escHtml(displayName)}」的 ${escHtml(def.section || "skill")}…</span>`;
+  container.appendChild(notice);
+  scrollToBottom(roomId);
+  if (!key) {
+    notice.innerHTML = `<span style="color:#f87171;">❌ 找不到成员「${escHtml(displayName)}」</span>`;
+    return;
+  }
+  try {
+    const res = await fetch(`/api/agents/${key}/skill`, {
+      method: "PATCH",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({ section: def.section || "work", content: def.content, mode: def.mode || "append" }),
+    });
+    if (!res.ok) throw new Error((await res.json()).detail || "更新失败");
+    notice.innerHTML = `<span>✅ 「${escHtml(displayName)}」能力已更新</span>`;
+  } catch(e) {
+    notice.innerHTML = `<span style="color:#f87171;">❌ 更新失败：${escHtml(e.message)}</span>`;
+  }
+}
+
+async function autoDeleteAgent(def, container, roomId) {
+  const notice = document.createElement("div");
+  notice.className = "msg-sys";
+  notice.innerHTML = `<span>🗑 正在删除「${escHtml(def.name || def.key)}」…</span>`;
+  container.appendChild(notice);
+  scrollToBottom(roomId);
+  const key = def.key || _allAgents.find(a => a.name === def.name)?.key;
+  if (!key) {
+    notice.innerHTML = `<span style="color:#f87171;">❌ 找不到成员「${escHtml(def.name)}」</span>`;
+    return;
+  }
+  try {
+    const res = await fetch(`/api/agents/${key}`, { method: "DELETE" });
+    if (!res.ok) throw new Error((await res.json()).detail || "删除失败");
+    notice.innerHTML = `<span>✅ 成员「${escHtml(def.name || key)}」已从工作台移除</span>`;
+    await loadAll();
+  } catch(e) {
+    notice.innerHTML = `<span style="color:#f87171;">❌ 删除失败：${escHtml(e.message)}</span>`;
+  }
+}
+
+async function autoCreateAgent(def, container, roomId) {
+  const notice = document.createElement("div");
+  notice.className = "msg-sys";
+  notice.innerHTML = `<span>⚙️ 正在召唤「${escHtml(def.name)}」…</span>`;
+  container.appendChild(notice);
+  scrollToBottom(roomId);
+  try {
+    const res = await fetch("/api/agents", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({ name: def.name, role: def.role, focus: def.focus || "", persona: def.persona, work: def.work || "" }),
+    });
+    if (!res.ok) throw new Error((await res.json()).detail || "创建失败");
+    const agent = await res.json();
+    notice.innerHTML = `<span>✅ 成员「${escHtml(def.name)}」已加入工作台 — 可在成员管理页面查看并分配到房间</span>`;
+    await loadAll();
+  } catch(e) {
+    notice.innerHTML = `<span style="color:#ef4444">❌ 召唤失败：${escHtml(e.message)}</span>`;
+  }
+  scrollToBottom(roomId);
+}
+
+function renderOptionButtons(rowEl, options, agentName, multi) {
+  if (!options.length) return;
+  const body = rowEl.querySelector(".msg-body");
+  const wrap = document.createElement("div");
+  wrap.className = "msg-options";
+
+  const selected = new Set();
+
+  for (const opt of options) {
+    const item = document.createElement("div");
+    item.className = "opt-item";
+    item.innerHTML = `<div class="opt-indicator ${multi ? 'checkbox' : 'radio'}"></div><span class="opt-label">${escHtml(opt)}</span>`;
+
+    item.onclick = () => {
+      if (multi) {
+        item.classList.toggle("selected");
+        if (selected.has(opt)) selected.delete(opt); else selected.add(opt);
+        confirmBtn.disabled = selected.size === 0;
+      } else {
+        wrap.querySelectorAll(".opt-item").forEach(i => i.style.pointerEvents = "none");
+        item.classList.add("selected");
+        if (currentRoom) sendOptionMsg(currentRoom, opt);
+      }
+    };
+    wrap.appendChild(item);
+  }
+
+  if (multi) {
+    const confirmBtn = document.createElement("button");
+    confirmBtn.className = "opt-confirm";
+    confirmBtn.textContent = "确认选择";
+    confirmBtn.disabled = true;
+    confirmBtn.onclick = () => {
+      if (!selected.size) return;
+      confirmBtn.disabled = true;
+      wrap.querySelectorAll(".opt-item").forEach(i => i.style.pointerEvents = "none");
+      const msg = [...selected].join("、");
+      if (currentRoom) sendOptionMsg(currentRoom, msg);
+    };
+    body.appendChild(wrap);
+    body.appendChild(confirmBtn);
+  } else {
+    body.appendChild(wrap);
+  }
 }
 
 function appendParallelBlock(container, batch) {
-  const items = batch.map(m => `
-    <div class="par-item">
-      <div class="msg-av" style="${avStyle(m.agent)};width:24px;height:24px;font-size:9px;flex-shrink:0;">${agentInitial(m.agent)}</div>
-      <div><div class="par-name">${escHtml(m.agent)}</div><div class="par-text">${escHtml(m.content)}</div></div>
-    </div>`).join("");
   const div = document.createElement("div");
   div.className = "msg-parallel";
-  div.innerHTML = `<div class="par-hdr">⚡ 并行回复</div>${items}`;
+  div.innerHTML = `<div class="par-hdr">⚡ 并行回复</div>`;
+  for (const m of batch) {
+    const item = document.createElement("div");
+    item.className = "par-item";
+    item.style.cssText = "align-items:flex-start;";
+    const av = avInner(m.agent);
+    item.innerHTML = `
+      <div class="msg-av" style="${av.style};width:24px;height:24px;font-size:9px;flex-shrink:0;">${av.inner}</div>
+      <div style="flex:1;min-width:0;">
+        <div class="par-name">${escHtml(m.agent)}</div>
+        <div class="par-text md-content">${renderMarkdown(m.content)}</div>
+      </div>`;
+    const copyBtn = document.createElement("button");
+    copyBtn.className = "copy-btn";
+    copyBtn.textContent = "复制";
+    copyBtn.style.cssText = "position:static;opacity:1;margin-left:6px;flex-shrink:0;";
+    copyBtn.addEventListener("click", () => copyText(copyBtn, m.content));
+    item.appendChild(copyBtn);
+    div.appendChild(item);
+  }
   container.appendChild(div);
 }
 
+function flushParallel(container, batch) {
+  if (!batch.length) return;
+  if (batch.length === 1) appendAgentBubble(container, batch[0].agent, batch[0].content);
+  else appendParallelBlock(container, batch);
+}
+
 function agentThinkingHTML(agentName, role) {
+  const av = avInner(agentName);
   return `<div class="msg-row">
-    <div class="msg-av" style="${avStyle(agentName)}">${agentInitial(agentName)}</div>
+    <div class="msg-av" style="${av.style}">${av.inner}</div>
     <div class="msg-body">
       <div class="msg-meta"><span class="msg-sender">${escHtml(agentName)}</span><span>${role||""}</span></div>
       <div class="msg-bubble"><div class="thinking"><span></span><span></span><span></span>&nbsp;思考中</div></div>
@@ -865,8 +1822,7 @@ function agentThinkingHTML(agentName, role) {
 
 function renderContextBanner(roomId, summary) {
   const msgsEl = document.getElementById("msgs-" + roomId);
-  const existing = msgsEl.querySelector(".ctx-banner");
-  if (existing) existing.remove();
+  msgsEl.querySelector(".ctx-banner")?.remove();
   const div = document.createElement("div");
   div.className = "ctx-banner";
   div.innerHTML = `
@@ -881,355 +1837,861 @@ function scrollToBottom(roomId) {
   const el = document.getElementById("msgs-" + roomId);
   if (el) requestAnimationFrame(() => el.scrollTop = el.scrollHeight);
 }
-
 function timeNow() {
   return new Date().toLocaleTimeString("zh-CN", {hour:"2-digit", minute:"2-digit"});
 }
 
 // ── 文件上传 ─────────────────────────────────────────────────────────────────
-function triggerUpload(roomId) {
-  document.getElementById("file-" + roomId).click();
-}
+function triggerUpload(roomId) { document.getElementById("file-" + roomId).click(); }
 
 async function handleUpload(event, roomId) {
   const files = [...event.target.files];
-  event.target.value = "";  // 允许重复上传同名文件
+  event.target.value = "";
   if (!files.length) return;
-
   const bar = document.getElementById("attach-" + roomId);
-
   for (const file of files) {
     const fd = new FormData();
     fd.append("file", file);
-
-    // 占位 chip（上传中）
     const chip = document.createElement("div");
     chip.className = "attach-chip";
     chip.innerHTML = `<span class="attach-chip-name">⏳ ${escHtml(file.name)}</span>`;
     bar.appendChild(chip);
-
     try {
       const res = await fetch("/api/upload", { method: "POST", body: fd });
       if (!res.ok) {
         const err = await res.json();
-        chip.innerHTML = `<span style="color:#ef4444">✗ ${escHtml(file.name)}: ${escHtml(err.detail || "失败")}</span>
-          <button class="attach-rm" onclick="this.closest('.attach-chip').remove()">✕</button>`;
-        chip.style.borderColor = "#fca5a5";
+        chip.innerHTML = `<span style="color:#ef4444">✗ ${escHtml(err.detail||"失败")}</span><button class="attach-rm" onclick="this.closest('.attach-chip').remove()">✕</button>`;
         continue;
       }
       const data = await res.json();
-      // 给每个附件分配唯一 id，避免删除时索引偏移
       data._uid = Math.random().toString(36).slice(2);
+      pendingAttachments[roomId] = pendingAttachments[roomId] || [];
       pendingAttachments[roomId].push(data);
-
       chip.className = "attach-chip" + (data.type === "image" ? " img-chip" : "");
       chip.dataset.uid = data._uid;
-      chip.innerHTML = `
-        <span>${data.type === "image" ? "🖼" : "📄"}</span>
-        <span class="attach-chip-name">${escHtml(data.filename)}</span>
+      chip.innerHTML = `<span>${data.type==="image"?"🖼":"📄"}</span><span class="attach-chip-name">${escHtml(data.filename)}</span>
         <button class="attach-rm" onclick="removeAttachment('${roomId}','${data._uid}',this.closest('.attach-chip'))">✕</button>`;
-    } catch (e) {
-      chip.innerHTML = `<span style="color:#ef4444">✗ ${escHtml(file.name)}: 网络错误</span>
-        <button class="attach-rm" onclick="this.closest('.attach-chip').remove()">✕</button>`;
+    } catch {
+      chip.innerHTML = `<span style="color:#ef4444">✗ 网络错误</span><button class="attach-rm" onclick="this.closest('.attach-chip').remove()">✕</button>`;
     }
   }
 }
 
 function removeAttachment(roomId, uid, chipEl) {
-  pendingAttachments[roomId] = pendingAttachments[roomId].filter(a => a._uid !== uid);
+  if (pendingAttachments[roomId]) pendingAttachments[roomId] = pendingAttachments[roomId].filter(a => a._uid !== uid);
   chipEl.remove();
 }
 
 function escHtml(s) {
-  return String(s)
-    .replace(/&/g,"&amp;").replace(/</g,"&lt;")
-    .replace(/>/g,"&gt;").replace(/\n/g,"<br>");
+  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\n/g,"<br>");
 }
 
-// ── 成员管理 ─────────────────────────────────────────────────────────────────
-const ROOM_NAMES = { product:"需求讨论室", review:"技术评审室", algo:"算法实验室" };
-const AV_COLOR_MAP = { blue:"#6366f1", cyan:"#38bdf8", orange:"#fb923c", green:"#34d399", gray:"#94a3b8" };
-let _editingKey = null;  // null = 新建模式
-
-function showMembers() {
-  document.querySelectorAll(".page,.chat-view").forEach(el => {
-    el.classList.remove("active"); el.style.display = "";
-  });
-  document.getElementById("page-members").classList.add("active");
-  document.querySelectorAll(".nav-item").forEach(el => el.classList.remove("active"));
-  document.getElementById("nav-members").classList.add("active");
-  document.getElementById("tb-title").textContent = "成员管理";
-  document.getElementById("tb-sub").textContent = "查看、编辑所有 AI 成员";
-  document.getElementById("btn-action").textContent = "＋ 新建成员";
-  document.getElementById("btn-action").onclick = () => openCreateModal();
-  document.getElementById("btn-clear").style.display = "none";
-  currentRoom = null;
-  loadMembers();
-}
-
-async function loadMembers() {
-  const grid = document.getElementById("members-grid");
-  grid.innerHTML = '<div style="color:var(--g400);font-size:13px;">加载中…</div>';
-  const agents = await fetch("/api/agents").then(r => r.json());
-  if (!agents.length) { grid.innerHTML = '<div style="color:var(--g400);font-size:13px;">暂无成员</div>'; return; }
-  grid.innerHTML = "";
-
-  // 每个成员的当前房间需要从 /api/rooms 获取
-  const rooms = await fetch("/api/rooms").then(r => r.json());
-  const memberRooms = {};
-  for (const room of rooms) {
-    for (const key of room.members) {
-      if (!memberRooms[key]) memberRooms[key] = [];
-      memberRooms[key].push(room.id);
-    }
-  }
-
-  for (const ag of agents) {
-    const col = AV_COLOR_MAP[ag.color] || "#94a3b8";
-    const initial = (ag.name || ag.key)[0];
-    const roomTags = (memberRooms[ag.key] || [])
-      .map(r => `<span class="mc-room-tag">${ROOM_NAMES[r] || r}</span>`).join("");
-    const card = document.createElement("div");
-    card.className = "member-card";
-    card.innerHTML = `
-      <div class="mc-head">
-        <div class="mc-av" style="background:linear-gradient(135deg,${col},${col}aa)">${initial}</div>
-        <div><div class="mc-name">${escHtml(ag.name)}</div><div class="mc-role">${escHtml(ag.role)}</div></div>
-      </div>
-      <div class="mc-focus">${escHtml(ag.focus || "—")}</div>
-      <div class="mc-rooms">${roomTags || '<span style="font-size:11px;color:var(--g300)">未分配房间</span>'}</div>
-      <button class="mc-edit" onclick="openEditModal('${ag.key}')">编辑</button>`;
-    grid.appendChild(card);
-  }
-}
-
-async function refreshSidebarMembers() {
-  const [agents, rooms] = await Promise.all([
-    fetch("/api/agents").then(r => r.json()),
-    fetch("/api/rooms").then(r => r.json()),
-  ]);
-  const roomMap = {};
-  for (const room of rooms) {
-    for (const key of room.members) {
-      if (!roomMap[key]) roomMap[key] = room;
-    }
-  }
-  const colors = { blue:"#6366f1", cyan:"#38bdf8", orange:"#fb923c", green:"#34d399", gray:"#94a3b8" };
-
-  // 更新 NAMES 和 NAME_TO_COLOR 字典供气泡显示用
-  for (const ag of agents) {
-    NAMES[ag.key] = ag.name;
-    NAME_TO_COLOR[ag.name] = colors[ag.color] || "#94a3b8";
-  }
-
-  // 侧边栏在线成员列表
-  const sb = document.getElementById("sidebar-members");
-  if (sb) {
-    sb.innerHTML = agents.map(ag => {
-      const room = roomMap[ag.key];
-      const col  = colors[ag.color] || "#94a3b8";
-      const ini  = (ag.name || ag.key)[0];
-      const onclick = room ? `showRoom('${room.id}')` : "";
-      return `<div class="member-row" ${onclick ? `onclick="${onclick}"` : ""} style="cursor:${onclick?'pointer':'default'}">
-        <div class="m-av" style="background:linear-gradient(135deg,${col},${col}aa)">${ini}<div class="m-dot"></div></div>
-        <div><div class="m-name">${escHtml(ag.name)}</div><div class="m-status">${room ? escHtml(room.name) : "未分配"}</div></div>
-      </div>`;
-    }).join("");
-  }
-
-  // 各房间右侧驻场成员面板 + @ 标签
-  for (const room of rooms) {
-    // 驻场成员面板
-    const ctxEl = document.getElementById(`ctx-members-${room.id}`);
-    if (ctxEl) {
-      ctxEl.innerHTML = room.members.map(key => {
-        const ag  = agents.find(a => a.key === key);
-        if (!ag) return "";
-        const col = colors[ag.color] || "#94a3b8";
-        const ini = (ag.name || key)[0];
-        return `<div class="ctx-member">
-          <div class="ctx-av" style="background:linear-gradient(135deg,${col},${col}aa)"><div class="ctx-online"></div>${ini}</div>
-          <div><div class="ctx-mname">${escHtml(ag.name)}</div><div class="ctx-mrole">${escHtml(ag.role)}</div></div>
-        </div>`;
-      }).join("");
-    }
-
-    // @ 标签
-    const chipsEl = document.getElementById(`at-chips-${room.id}`);
-    if (chipsEl) {
-      chipsEl.innerHTML = room.members.map(key => {
-        const ag  = agents.find(a => a.key === key);
-        if (!ag) return "";
-        const col = colors[ag.color] || "#94a3b8";
-        return `<div class="at-chip" data-key="${key}" onclick="setAt(this,'${room.id}','${key}')"><div class="at-dot" style="background:${col}"></div>${escHtml(ag.name)}</div>`;
-      }).join("");
-    }
-
-    // 聊天室顶部 msg-sys
-    const sysEl = document.getElementById(`msg-sys-${room.id}`);
-    if (sysEl) {
-      const names = room.members.map(key => {
-        const ag = agents.find(a => a.key === key);
-        return ag ? ag.name : key;
-      }).join("、");
-      sysEl.innerHTML = `<span>${escHtml(room.name)} · ${escHtml(names)} 驻场</span>`;
-    }
-
-    // ROOM_META sub
-    if (ROOM_META[room.id]) {
-      const names = room.members.map(key => {
-        const ag = agents.find(a => a.key === key);
-        return ag ? ag.name : key;
-      }).join(" · ");
-      ROOM_META[room.id].sub = names + " 驻场";
-    }
-  }
-
-  // Dashboard 功能模块卡片
-  const modGrid = document.getElementById("dash-mod-grid");
-  if (modGrid) {
-    const roomColors = { product:"purple", review:"blue", algo:"green" };
-    modGrid.innerHTML = rooms.map(room => {
-      const m = ROOM_META[room.id] || {};
-      const memberAvatars = room.members.map(key => {
-        const ag = agents.find(a => a.key === key);
-        if (!ag) return "";
-        const col = colors[ag.color] || "#94a3b8";
-        return `<div class="axs" style="background:linear-gradient(135deg,${col},${col}aa)">${(ag.name||key)[0]}</div>`;
-      }).join("");
-      return `<div class="mod-card" onclick="showRoom('${room.id}')">
-        <div class="mod-icon ${roomColors[room.id]||'blue'}">${m.icon||'💬'}</div>
-        <h3>${escHtml(room.name)}</h3>
-        <div class="mod-meta">
-          <div class="avs">${memberAvatars}</div>
-          <div class="mod-meta-txt">${room.members.length} 人驻场</div>
-        </div>
-      </div>`;
-    }).join("");
-  }
-
-  // Dashboard 今日消息（每个房间取一个不重复的成员）
-  const actEl = document.getElementById("dash-activity");
-  if (actEl && agents.length) {
-    const tagMap = { product:"<div class='act-tag tag-p'>需求</div>", review:"<div class='act-tag tag-r'>评审</div>", algo:"<div class='act-tag tag-a'>算法</div>" };
-    const usedKeys = new Set();
-    const items = rooms.map(room => {
-      // 优先取 lead，其次取该房间里还没用过的成员
-      const candidate = [room.lead, ...room.members].filter(Boolean).find(k => k && !usedKeys.has(k));
-      if (!candidate) return "";
-      usedKeys.add(candidate);
-      const ag = agents.find(a => a.key === candidate);
-      if (!ag) return "";
-      const col = colors[ag.color] || "#94a3b8";
-      const ini = (ag.name || candidate)[0];
-      return `<div class="act-item" onclick="showRoom('${room.id}')">
-        <div class="act-av" style="background:linear-gradient(135deg,${col},${col}aa)">${ini}</div>
-        <div><div class="act-txt"><b>${escHtml(ag.name)}</b> 在${escHtml(room.name)}等待新任务</div><div class="act-time">在线</div></div>
-        ${tagMap[room.id]||""}
-      </div>`;
-    }).join("");
-    actEl.innerHTML = items;
-  }
-}
-
-async function openEditModal(key) {
-  _editingKey = key;
-  document.getElementById("am-title").textContent = "编辑成员";
-  document.getElementById("am-save").disabled = true;
-  document.getElementById("am-save").textContent = "加载中…";
-  switchAmTab("basic");
-  document.getElementById("agent-overlay").classList.remove("hidden");
-
-  const data = await fetch(`/api/agents/${key}`).then(r => r.json());
-  document.getElementById("am-name").value    = data.name    || "";
-  document.getElementById("am-role").value    = data.role    || "";
-  document.getElementById("am-focus").value   = data.focus   || "";
-  document.getElementById("am-persona").value = data.persona || "";
-  document.getElementById("am-work").value    = data.work    || "";
-  document.getElementById("am-apikey").value  = data.api_key || "";
-
-  const currentRooms = data.current_rooms || [];
-  document.querySelectorAll("#am-rooms input[type=checkbox]").forEach(cb => {
-    cb.checked = currentRooms.includes(cb.value);
-  });
-
-  document.getElementById("am-save").disabled = false;
-  document.getElementById("am-save").textContent = "保存";
-}
-
-function openCreateModal() {
-  _editingKey = null;
-  document.getElementById("am-title").textContent = "新建成员";
-  document.getElementById("am-name").value    = "";
-  document.getElementById("am-role").value    = "";
-  document.getElementById("am-focus").value   = "";
-  document.getElementById("am-persona").value = "";
-  document.getElementById("am-work").value    = "";
-  document.getElementById("am-apikey").value  = "";
-  document.querySelectorAll("#am-rooms input[type=checkbox]").forEach(cb => cb.checked = false);
-  document.getElementById("am-save").disabled = false;
-  document.getElementById("am-save").textContent = "创建";
-  switchAmTab("basic");
-  document.getElementById("agent-overlay").classList.remove("hidden");
-}
-
-function closeAgentModal() {
-  document.getElementById("agent-overlay").classList.add("hidden");
-}
-
-function switchAmTab(tab) {
-  document.querySelectorAll(".am-tab").forEach((t, i) => {
-    const tabs = ["basic","persona","work"];
-    t.classList.toggle("active", tabs[i] === tab);
-  });
-  document.querySelectorAll(".am-tab-panel").forEach(p => p.classList.remove("active"));
-  document.getElementById("am-panel-" + tab).classList.add("active");
-}
-
-async function saveAgent() {
-  const btn = document.getElementById("am-save");
-  const name    = document.getElementById("am-name").value.trim();
-  const role    = document.getElementById("am-role").value.trim();
-  const focus   = document.getElementById("am-focus").value.trim();
-  const persona = document.getElementById("am-persona").value;
-  const work    = document.getElementById("am-work").value;
-  const api_key = document.getElementById("am-apikey").value.trim();
-  const rooms   = [...document.querySelectorAll("#am-rooms input[type=checkbox]")]
-                    .filter(cb => cb.checked).map(cb => cb.value);
-
-  if (!name || !role) { alert("姓名和角色不能为空"); return; }
-  if (!persona.trim()) { alert("Persona 不能为空"); return; }
-
-  btn.disabled = true;
-  btn.textContent = "保存中…";
-
+function renderMarkdown(text) {
+  if (!text) return "";
   try {
-    let res;
-    if (_editingKey) {
-      res = await fetch(`/api/agents/${_editingKey}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, role, focus, persona, work, rooms, api_key }),
-      });
-    } else {
-      res = await fetch("/api/agents", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, role, focus, persona, work, api_key }),
-      });
-    }
-    if (!res.ok) { const e = await res.json(); throw new Error(e.detail || "请求失败"); }
-    closeAgentModal();
-    loadMembers();
-    refreshSidebarMembers();
-  } catch (e) {
-    alert("保存失败：" + e.message);
-    btn.disabled = false;
-    btn.textContent = _editingKey ? "保存" : "创建";
+    return marked.parse(text, { breaks: true, gfm: true });
+  } catch {
+    return escHtml(text);
   }
 }
 
-refreshSidebarMembers();
+function hideEmptyState(roomId) {
+  const el = document.getElementById("empty-" + roomId);
+  if (el) el.style.display = "none";
+}
+
+function showEmptyState(roomId) {
+  const el = document.getElementById("empty-" + roomId);
+  if (el) el.style.display = "";
+}
+
+async function copyBubble(btn) {
+  const wrap = btn.closest(".msg-bubble-wrap");
+  const text = wrap?.querySelector(".md-content")?.innerText || wrap?.querySelector(".msg-bubble")?.innerText || "";
+  await copyText(btn, text);
+}
+
+async function copyText(btn, text) {
+  try {
+    await navigator.clipboard.writeText(text);
+    btn.textContent = "已复制";
+    btn.classList.add("copied");
+    setTimeout(() => { btn.textContent = "复制"; btn.classList.remove("copied"); }, 1500);
+  } catch {
+    btn.textContent = "失败";
+    setTimeout(() => { btn.textContent = "复制"; }, 1200);
+  }
+}
+
+// ── 文件面板 (VSCode-style Explorer) ─────────────────────────────────────────
+/*
+  节点结构：{ id, type:"folder"|"file", name, parentId:null|id, open:bool, content:"", mime:"" }
+  存储：localStorage  key = `fp-{roomId}`
+*/
+
+const _fpSelected = {};        // roomId → nodeId
+const _fpDrag     = {};        // 拖拽状态 { nodeId, roomId, ghost }
+
+function _fpKey(roomId)  { return `fp-${roomId}`; }
+function _fpLoad(roomId) { try { return JSON.parse(localStorage.getItem(_fpKey(roomId))) || []; } catch { return []; } }
+function _fpSave(roomId, nodes) { localStorage.setItem(_fpKey(roomId), JSON.stringify(nodes)); }
+function _fpNewId() { return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+
+// ── 面板开关 ──────────────────────────────────────────────────────────────────
+
+function toggleFilesPanel(roomId) {
+  const panel  = document.getElementById(`fp-${roomId}`);
+  const btn    = document.getElementById(`fp-toggle-${roomId}`);
+  const collapsed = panel.classList.toggle("collapsed");
+  if (btn) btn.classList.toggle("active", !collapsed);
+  if (!collapsed) fpRenderTree(roomId);
+}
+
+// ── 渲染入口 ──────────────────────────────────────────────────────────────────
+
+function fpRenderTree(roomId) {
+  const treeEl = document.getElementById(`fp-tree-${roomId}`);
+  if (!treeEl) return;
+  const nodes = _fpLoad(roomId);
+  treeEl.innerHTML = "";
+
+  // 根区域：可拖入空白处 → 移到根
+  treeEl.addEventListener("dragover", e => {
+    if (!_fpDrag.nodeId) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    treeEl.querySelectorAll(".ft-row.drop-target").forEach(el => el.classList.remove("drop-target"));
+  }, { passive: false });
+  treeEl.addEventListener("drop", e => {
+    e.preventDefault();
+    e.stopPropagation();
+    _fpDropOnto(roomId, null);   // 移到根
+  });
+
+  const rootNodes = nodes.filter(n => !n.parentId);
+  if (!rootNodes.length) {
+    const empty = document.createElement("div");
+    empty.className = "fp-empty";
+    empty.innerHTML = "暂无文件<br>点击上方按钮新建";
+    treeEl.appendChild(empty);
+    return;
+  }
+  _fpRenderChildren(roomId, treeEl, nodes, null, 0);
+}
+
+function _fpRenderChildren(roomId, container, nodes, parentId, depth) {
+  const children = nodes
+    .filter(n => (n.parentId || null) === parentId)
+    .sort((a,b) => a.type !== b.type ? (a.type==="folder"?-1:1) : a.name.localeCompare(b.name, "zh"));
+  for (const node of children) {
+    container.appendChild(_fpBuildRow(roomId, node, depth, nodes));
+    if (node.type === "folder" && node.open) {
+      _fpRenderChildren(roomId, container, nodes, node.id, depth + 1);
+    }
+  }
+}
+
+function _fpBuildRow(roomId, node, depth, nodes) {
+  const isFolder  = node.type === "folder";
+  const isSelected = _fpSelected[roomId] === node.id;
+
+  const row = document.createElement("div");
+  row.className = "ft-row" + (isSelected ? " selected" : "");
+  row.dataset.nodeId = node.id;
+  row.draggable = true;
+  row.style.paddingLeft = `${6 + depth * 14}px`;
+
+  // ── 折叠箭头
+  const arrow = document.createElement("span");
+  arrow.className = "ft-arrow" + (isFolder && node.open ? " open" : "");
+  arrow.innerHTML = isFolder ? `<svg width="8" height="8" viewBox="0 0 8 8"><path d="M2 1l4 3-4 3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>` : "";
+  arrow.style.visibility = isFolder ? "visible" : "hidden";
+  if (isFolder) arrow.addEventListener("click", e => { e.stopPropagation(); fpToggleFolder(roomId, node.id); });
+
+  // ── 图标
+  const icon = document.createElement("span");
+  icon.className = "ft-icon";
+  icon.innerHTML = isFolder ? (node.open ? _fpFolderOpenSvg() : _fpFolderSvg()) : _fpFileIconSvg(node.name);
+
+  // ── 名称（普通 or 内联编辑）
+  const nameEl = document.createElement("span");
+  nameEl.className = "ft-name";
+  nameEl.textContent = node.name;
+
+  // ── 行内操作按钮（hover 时显示，VSCode 风格）
+  const acts = document.createElement("div");
+  acts.className = "ft-row-acts";
+  if (isFolder) {
+    acts.innerHTML =
+      `<span class="ft-act-btn" title="新建文件" data-action="nf"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M9.5 1.5H4a1 1 0 00-1 1v11a1 1 0 001 1h8a1 1 0 001-1V6.5L9.5 1.5z" stroke="currentColor" stroke-width="1.2"/><path d="M9.5 1.5V6.5H13.5" stroke="currentColor" stroke-width="1.2"/><path d="M8 9v4M6 11h4" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg></span>` +
+      `<span class="ft-act-btn" title="新建文件夹" data-action="nd"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M1.5 4.5a1 1 0 011-1h3.4l1.2 1.4H13.5a1 1 0 011 1V12a1 1 0 01-1 1h-11a1 1 0 01-1-1V4.5z" stroke="currentColor" stroke-width="1.1"/><path d="M8 8v4M6 10h4" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg></span>`;
+  }
+  acts.innerHTML +=
+    `<span class="ft-act-btn" title="重命名" data-action="rn"><svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M11.5 2.5l2 2-9 9H2.5v-2l9-9z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>` +
+    `<span class="ft-act-btn" title="删除" data-action="del" style="color:#f14c4c;"><svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M5 4V2.5h6V4M6 7v5M10 7v5M3 4l.8 9.2a1 1 0 001 .8h6.4a1 1 0 001-.8L13 4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg></span>`;
+
+  acts.addEventListener("click", e => {
+    e.stopPropagation();
+    const btn = e.target.closest("[data-action]");
+    if (!btn) return;
+    const act = btn.dataset.action;
+    if (act === "nf")  fpNewFileIn(roomId, node.id);
+    if (act === "nd")  fpNewFolderIn(roomId, node.id);
+    if (act === "rn")  fpStartRename(roomId, node.id, nameEl, row);
+    if (act === "del") fpDeleteNode(roomId, node.id);
+  });
+
+  row.append(arrow, icon, nameEl, acts);
+
+  // ── 事件
+  row.addEventListener("click", e => {
+    if (e.target.closest(".ft-row-acts") || e.target.closest(".ft-arrow")) return;
+    _fpSelected[roomId] = node.id;
+    fpRenderTree(roomId);
+    if (!isFolder) fpOpenPreview(roomId, node.id);
+  });
+
+  row.addEventListener("dblclick", e => {
+    if (e.target.closest(".ft-row-acts")) return;
+    if (isFolder) fpToggleFolder(roomId, node.id);
+  });
+
+  row.addEventListener("contextmenu", e => {
+    e.preventDefault();
+    fpShowCtxMenu(roomId, node.id, e.clientX, e.clientY);
+  });
+
+  // ── 拖拽：拖动源
+  row.addEventListener("dragstart", e => {
+    _fpDrag.nodeId = node.id;
+    _fpDrag.roomId = roomId;
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/plain", node.id);
+    row.classList.add("dragging");
+    // 自定义拖影
+    const ghost = document.createElement("div");
+    ghost.className = "ft-drag-ghost";
+    ghost.textContent = node.name;
+    document.body.appendChild(ghost);
+    _fpDrag.ghost = ghost;
+    e.dataTransfer.setDragImage(ghost, 0, 14);
+  });
+
+  row.addEventListener("dragend", () => {
+    row.classList.remove("dragging");
+    _fpDrag.ghost?.remove();
+    _fpDrag.ghost = null;
+    _fpDrag.nodeId = null;
+    _fpDrag.roomId = null;
+    document.querySelectorAll(".ft-row.drop-target,.ft-row.drop-above,.ft-row.drop-below")
+      .forEach(el => el.classList.remove("drop-target","drop-above","drop-below"));
+  });
+
+  // ── 拖拽：放置目标
+  row.addEventListener("dragover", e => {
+    if (!_fpDrag.nodeId || _fpDrag.nodeId === node.id) return;
+    if (_fpIsAncestor(nodes, node.id, _fpDrag.nodeId)) return;
+    e.preventDefault();
+    e.stopPropagation();
+    document.querySelectorAll(".ft-row.drop-target,.ft-row.drop-above,.ft-row.drop-below")
+      .forEach(el => el.classList.remove("drop-target","drop-above","drop-below"));
+    if (isFolder) {
+      e.dataTransfer.dropEffect = "move";
+      row.classList.add("drop-target");
+    } else {
+      const rect = row.getBoundingClientRect();
+      const mid  = rect.top + rect.height / 2;
+      if (e.clientY < mid) { row.classList.add("drop-above"); e.dataTransfer.dropEffect = "move"; }
+      else                  { row.classList.add("drop-below"); e.dataTransfer.dropEffect = "move"; }
+    }
+  });
+
+  row.addEventListener("dragleave", e => {
+    if (!row.contains(e.relatedTarget)) {
+      row.classList.remove("drop-target","drop-above","drop-below");
+    }
+  });
+
+  row.addEventListener("drop", e => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!_fpDrag.nodeId || _fpDrag.nodeId === node.id) return;
+    if (_fpIsAncestor(nodes, node.id, _fpDrag.nodeId)) return;
+    row.classList.remove("drop-target","drop-above","drop-below");
+    if (isFolder) {
+      _fpDropOnto(roomId, node.id);
+    } else {
+      // 放到同级
+      _fpDropOnto(roomId, node.parentId || null);
+    }
+  });
+
+  return row;
+}
+
+// 判断 candidateId 是否是 targetId 的祖先（防止把文件夹拖入自己的子孙）
+function _fpIsAncestor(nodes, targetId, candidateId) {
+  let cur = nodes.find(n => n.id === targetId);
+  while (cur) {
+    if (cur.parentId === candidateId) return true;
+    cur = nodes.find(n => n.id === cur.parentId);
+  }
+  return false;
+}
+
+function _fpDropOnto(roomId, newParentId) {
+  const dragNodeId = _fpDrag.nodeId;
+  if (!dragNodeId) return;
+  const nodes = _fpLoad(roomId);
+  const node  = nodes.find(n => n.id === dragNodeId);
+  if (!node) return;
+  if (node.parentId === newParentId) return;
+  node.parentId = newParentId || null;
+  _fpSave(roomId, nodes);
+  fpRenderTree(roomId);
+}
+
+// ── 文件图标映射 ──────────────────────────────────────────────────────────────
+
+function _fpFolderSvg() {
+  return `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1.5 4a1 1 0 011-1h3.4l1.2 1.5H13.5a1 1 0 011 1V12a1 1 0 01-1 1h-11a1 1 0 01-1-1V4z" fill="#e8ab53" stroke="none"/></svg>`;
+}
+function _fpFolderOpenSvg() {
+  return `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1.5 4a1 1 0 011-1h3.4l1.2 1.5H13.5a1 1 0 011 1V7H1.5V4z" fill="#e8ab53"/><path d="M1.5 7h13l-1.5 6H3L1.5 7z" fill="#e8ab53"/></svg>`;
+}
+function _fpFileIconSvg(name) {
+  const ext = (name.split(".").pop() || "").toLowerCase();
+  const colors = {
+    js:"#cbcb41",ts:"#3178c6",py:"#3572a5",json:"#cbcb41",
+    html:"#e34c26",css:"#563d7c",md:"#519aba",txt:"#cccccc",
+    svg:"#ff9800",png:"#cc5522",jpg:"#cc5522",jpeg:"#cc5522",gif:"#cc5522",webp:"#cc5522",
+    pdf:"#f40f02",csv:"#36a24a",xlsx:"#36a24a",xls:"#36a24a",
+    sh:"#4eaa25",yaml:"#6d8086",yml:"#6d8086",toml:"#9c4221",
+    env:"#ecd53f",lock:"#a0a0a0",zip:"#8bc34a",doc:"#2b579a",docx:"#2b579a",
+  };
+  const c = colors[ext] || "#cccccc";
+  return `<svg width="14" height="16" viewBox="0 0 14 16" fill="none"><path d="M2 1h7l3 3v11H2V1z" fill="${c}" opacity=".18"/><path d="M2 1h7l3 3v11H2V1z" stroke="${c}" stroke-width="1"/><path d="M9 1v3h3" stroke="${c}" stroke-width="1"/></svg>`;
+}
+function _fpFileIcon(name) {
+  return _fpFileIconSvg(name);
+}
+
+// ── 折叠/展开 ─────────────────────────────────────────────────────────────────
+
+function fpToggleFolder(roomId, nodeId) {
+  const nodes = _fpLoad(roomId);
+  const node = nodes.find(n => n.id === nodeId);
+  if (node) { node.open = !node.open; _fpSave(roomId, nodes); fpRenderTree(roomId); }
+}
+
+// ── 内联重命名（VSCode F2 风格）──────────────────────────────────────────────
+
+function fpStartRename(roomId, nodeId, nameEl, row) {
+  if (row.querySelector(".ft-rename-input")) return;
+  const oldName = nameEl.textContent;
+  nameEl.style.display = "none";
+  row.classList.add("renaming");
+  const inp = document.createElement("input");
+  inp.className = "ft-rename-input";
+  inp.value = oldName;
+  // 选中无扩展名部分
+  const dotIdx = oldName.lastIndexOf(".");
+  row.insertBefore(inp, nameEl.nextSibling);
+  inp.focus();
+  inp.setSelectionRange(0, dotIdx > 0 ? dotIdx : oldName.length);
+
+  const commit = () => {
+    const newName = inp.value.trim();
+    inp.remove();
+    nameEl.style.display = "";
+    row.classList.remove("renaming");
+    if (!newName || newName === oldName) return;
+    const nodes = _fpLoad(roomId);
+    const node = nodes.find(n => n.id === nodeId);
+    if (node) { node.name = newName; _fpSave(roomId, nodes); fpRenderTree(roomId); }
+  };
+  const cancel = () => {
+    inp.remove(); nameEl.style.display = ""; row.classList.remove("renaming");
+  };
+  inp.addEventListener("blur", commit);
+  inp.addEventListener("keydown", e => {
+    if (e.key === "Enter") { e.preventDefault(); commit(); }
+    if (e.key === "Escape") { e.preventDefault(); cancel(); }
+  });
+}
+
+// ── 新建（根据选中位置）──────────────────────────────────────────────────────
+
+function _fpGetSelectedFolderOrRoot(roomId, nodes) {
+  const selId = _fpSelected[roomId];
+  if (!selId) return null;
+  const sel = nodes.find(n => n.id === selId);
+  if (!sel) return null;
+  return sel.type === "folder" ? sel.id : (sel.parentId || null);
+}
+
+function fpNewFile(roomId) { _fpBeginInlineCreate(roomId, "file"); }
+function fpNewFolder(roomId) { _fpBeginInlineCreate(roomId, "folder"); }
+
+function _fpBeginInlineCreate(roomId, type) {
+  const nodes = _fpLoad(roomId);
+  const parentId = _fpGetSelectedFolderOrRoot(roomId, nodes);
+  // 展开父文件夹
+  if (parentId) {
+    const parent = nodes.find(n => n.id === parentId);
+    if (parent) parent.open = true;
+    _fpSave(roomId, nodes);
+  }
+  _fpRenderTreeWithNewRow(roomId, parentId, type);
+}
+
+function _fpRenderTreeWithNewRow(roomId, parentId, type) {
+  const treeEl = document.getElementById(`fp-tree-${roomId}`);
+  if (!treeEl) return;
+  fpRenderTree(roomId);   // 先正常渲染
+
+  // 找到插入点：parentId 对应行的末尾（或 tree 顶部）
+  let insertBefore = null;
+  if (parentId) {
+    const rows = [...treeEl.querySelectorAll(".ft-row")];
+    const parentRow = rows.find(r => r.dataset.nodeId === parentId);
+    if (parentRow) {
+      // 找到该父节点后面第一个非子孙行
+      const nodes = _fpLoad(roomId);
+      const isChild = (id) => {
+        let n = nodes.find(x => x.id === id);
+        while (n) { if (n.parentId === parentId) return true; n = nodes.find(x => x.id === n?.parentId); }
+        return false;
+      };
+      let idx = rows.indexOf(parentRow) + 1;
+      while (idx < rows.length && isChild(rows[idx].dataset.nodeId)) idx++;
+      insertBefore = rows[idx] || null;
+    }
+  }
+
+  // 计算缩进层级
+  const nodes = _fpLoad(roomId);
+  let depth = 0;
+  let cur = parentId ? nodes.find(n => n.id === parentId) : null;
+  while (cur) { depth++; cur = nodes.find(n => n.id === cur.parentId); }
+  if (parentId) depth++;   // 子项比父深一级
+
+  const newRow = document.createElement("div");
+  newRow.className = "ft-row new-item";
+  newRow.style.paddingLeft = `${6 + depth * 14}px`;
+  const icon = document.createElement("span");
+  icon.className = "ft-icon";
+  icon.innerHTML = type === "folder" ? _fpFolderSvg() : _fpFileIconSvg("new");
+  const inp = document.createElement("input");
+  inp.className = "ft-rename-input";
+  inp.placeholder = type === "folder" ? "文件夹名称" : "文件名称.md";
+  newRow.append(icon, inp);
+
+  if (insertBefore) treeEl.insertBefore(newRow, insertBefore);
+  else treeEl.appendChild(newRow);
+  inp.focus();
+
+  const commit = () => {
+    const name = inp.value.trim();
+    newRow.remove();
+    if (!name) return;
+    const freshNodes = _fpLoad(roomId);
+    freshNodes.push({
+      id: _fpNewId(), type, name, parentId: parentId || null,
+      open: type === "folder",
+      content: "", mime: type === "file" ? "text/plain" : ""
+    });
+    _fpSave(roomId, freshNodes);
+    fpRenderTree(roomId);
+  };
+  inp.addEventListener("blur", commit);
+  inp.addEventListener("keydown", e => {
+    if (e.key === "Enter") { e.preventDefault(); commit(); }
+    if (e.key === "Escape") { e.preventDefault(); newRow.remove(); fpRenderTree(roomId); }
+  });
+}
+
+function fpNewFileIn(roomId, parentId) {
+  _fpSelected[roomId] = parentId;
+  const nodes = _fpLoad(roomId);
+  const p = nodes.find(n => n.id === parentId);
+  if (p) { p.open = true; _fpSave(roomId, nodes); }
+  _fpRenderTreeWithNewRow(roomId, parentId, "file");
+}
+
+function fpNewFolderIn(roomId, parentId) {
+  _fpSelected[roomId] = parentId;
+  const nodes = _fpLoad(roomId);
+  const p = nodes.find(n => n.id === parentId);
+  if (p) { p.open = true; _fpSave(roomId, nodes); }
+  _fpRenderTreeWithNewRow(roomId, parentId, "folder");
+}
+
+// ── 上传 ──────────────────────────────────────────────────────────────────────
+
+function fpUpload(roomId) { document.getElementById(`fp-upload-${roomId}`)?.click(); }
+
+async function fpHandleUpload(event, roomId) {
+  const files = [...event.target.files];
+  if (!files.length) return;
+  const nodes = _fpLoad(roomId);
+  const parentId = _fpGetSelectedFolderOrRoot(roomId, nodes);
+  for (const f of files) {
+    const isImg  = f.type.startsWith("image/");
+    const isText = f.type.startsWith("text/") || /\.(md|json|js|ts|py|html|css|csv|txt|xml|yaml|yml|sh|toml|env)$/i.test(f.name);
+    let content = "";
+    if (isImg) {
+      content = await new Promise(r => { const fr = new FileReader(); fr.onload = e => r(e.target.result); fr.readAsDataURL(f); });
+    } else if (isText || f.size < 200000) {
+      content = await f.text().catch(() => "[二进制文件，无法预览]");
+    } else {
+      content = "[文件过大，无法预览]";
+    }
+    nodes.push({ id: _fpNewId(), type:"file", name:f.name, parentId: parentId||null, content, mime: f.type||"application/octet-stream", open:false });
+  }
+  _fpSave(roomId, nodes);
+  fpRenderTree(roomId);
+  event.target.value = "";
+}
+
+// ── 预览面板 ──────────────────────────────────────────────────────────────────
+
+function fpOpenPreview(roomId, nodeId) {
+  const nodes = _fpLoad(roomId);
+  const node  = nodes.find(n => n.id === nodeId);
+  if (!node || node.type === "folder") return;
+  const previewEl = document.getElementById(`fp-preview-${roomId}`);
+  const nameEl    = document.getElementById(`fp-preview-name-${roomId}`);
+  const bodyEl    = document.getElementById(`fp-preview-body-${roomId}`);
+  nameEl.textContent = node.name;
+  previewEl.classList.add("visible");
+  previewEl.dataset.nodeId = nodeId;
+  if (node.mime?.startsWith("image/")) {
+    bodyEl.innerHTML = `<img class="fp-preview-img" src="${node.content}" />`;
+  } else {
+    bodyEl.textContent = node.content || "(空文件)";
+  }
+}
+
+function fpClosePreview(roomId) {
+  const el = document.getElementById(`fp-preview-${roomId}`);
+  el.classList.remove("visible");
+  el.dataset.nodeId = "";
+}
+
+function fpSendToChat(roomId) {
+  const previewEl = document.getElementById(`fp-preview-${roomId}`);
+  const nodeId    = previewEl.dataset.nodeId;
+  if (!nodeId) return;
+  const nodes = _fpLoad(roomId);
+  const node  = nodes.find(n => n.id === nodeId);
+  if (!node) return;
+  const inputEl = document.getElementById(`input-${roomId}`);
+  if (!inputEl) return;
+  if (node.mime?.startsWith("image/")) {
+    const b64 = node.content.split(",")[1] || "";
+    pendingAttachments[roomId] = pendingAttachments[roomId] || [];
+    pendingAttachments[roomId].push({ type:"image", filename:node.name, mime:node.mime, data:b64 });
+    const bar = document.getElementById(`attach-${roomId}`);
+    if (bar) bar.insertAdjacentHTML("beforeend",
+      `<div class="attach-chip img-chip"><span>🖼</span><span class="attach-chip-name">${escHtml(node.name)}</span></div>`);
+  } else {
+    const cur = inputEl.value;
+    inputEl.value = cur + (cur ? "\n" : "") + `[附件: ${node.name}]\n\`\`\`\n${(node.content||"").slice(0,6000)}\n\`\`\``;
+    inputEl.focus();
+  }
+}
+
+// ── 右键菜单 ──────────────────────────────────────────────────────────────────
+
+let _ftCtxEl = null;
+
+function fpShowCtxMenu(roomId, nodeId, x, y) {
+  fpHideCtxMenu();
+  const nodes = _fpLoad(roomId);
+  const node  = nodes.find(n => n.id === nodeId);
+  if (!node) return;
+  const isFolder = node.type === "folder";
+  const items = [];
+  if (isFolder) {
+    items.push({ label:"新建文件",    shortcut:"",    fn: () => fpNewFileIn(roomId, nodeId) });
+    items.push({ label:"新建文件夹",  shortcut:"",    fn: () => fpNewFolderIn(roomId, nodeId) });
+    items.push("sep");
+  } else {
+    items.push({ label:"预览",        shortcut:"",    fn: () => fpOpenPreview(roomId, nodeId) });
+    items.push({ label:"发送到对话",  shortcut:"",    fn: () => { fpOpenPreview(roomId, nodeId); setTimeout(()=>fpSendToChat(roomId),50); } });
+    items.push("sep");
+  }
+  items.push({ label:"重命名",       shortcut:"F2",  fn: () => fpRenameNode(roomId, nodeId) });
+  items.push({ label:"剪切",          shortcut:"⌘X",  fn: () => fpCut(roomId, nodeId) });
+  items.push({ label:"复制路径",      shortcut:"",    fn: () => fpCopyPath(roomId, nodeId) });
+  items.push("sep");
+  items.push({ label:"删除", danger:true, shortcut:"Del", fn: () => fpDeleteNode(roomId, nodeId) });
+
+  const menu = document.createElement("div");
+  menu.className = "ft-ctx-menu";
+  menu.style.cssText = `left:${x}px;top:${y}px;`;
+  for (const item of items) {
+    if (item === "sep") { const s = document.createElement("div"); s.className="ft-ctx-sep"; menu.appendChild(s); continue; }
+    const el = document.createElement("div");
+    el.className = "ft-ctx-item" + (item.danger ? " danger" : "");
+    el.innerHTML = `<span style="flex:1;">${item.label}</span>${item.shortcut ? `<span class="ft-ctx-shortcut">${item.shortcut}</span>` : ""}`;
+    el.addEventListener("click", () => { fpHideCtxMenu(); item.fn(); });
+    menu.appendChild(el);
+  }
+  document.body.appendChild(menu);
+  _ftCtxEl = menu;
+  requestAnimationFrame(() => {
+    const r = menu.getBoundingClientRect();
+    if (r.right  > window.innerWidth)  menu.style.left = (x - r.width)  + "px";
+    if (r.bottom > window.innerHeight) menu.style.top  = (y - r.height) + "px";
+  });
+}
+
+function fpHideCtxMenu() { if (_ftCtxEl) { _ftCtxEl.remove(); _ftCtxEl = null; } }
+document.addEventListener("click", e => { if (_ftCtxEl && !_ftCtxEl.contains(e.target)) fpHideCtxMenu(); });
+
+// ── 重命名（从菜单触发）──────────────────────────────────────────────────────
+
+function fpRenameNode(roomId, nodeId) {
+  const treeEl = document.getElementById(`fp-tree-${roomId}`);
+  if (!treeEl) return;
+  const row    = treeEl.querySelector(`[data-node-id="${nodeId}"]`) ||
+                 treeEl.querySelector(`[data-nodeid="${nodeId}"]`);
+  // 重新渲染后找到行的 nameEl 并触发
+  const nodes = _fpLoad(roomId);
+  const node  = nodes.find(n => n.id === nodeId);
+  if (!node) return;
+  // 直接重渲，在回调中触发 rename
+  fpRenderTree(roomId);
+  requestAnimationFrame(() => {
+    const freshRow = treeEl.querySelector(`.ft-row[data-node-id="${nodeId}"]`);
+    if (!freshRow) return;
+    const nameEl = freshRow.querySelector(".ft-name");
+    fpStartRename(roomId, nodeId, nameEl, freshRow);
+  });
+}
+
+// ── 剪切 / 复制路径 ───────────────────────────────────────────────────────────
+
+let _fpClipboard = null;  // { roomId, nodeId, op:"cut" }
+
+function fpCut(roomId, nodeId) {
+  _fpClipboard = { roomId, nodeId, op:"cut" };
+  // 视觉标记
+  document.querySelectorAll(".ft-row.cut-item").forEach(el => el.classList.remove("cut-item"));
+  document.querySelector(`[data-node-id="${nodeId}"]`)?.classList.add("cut-item");
+}
+
+function fpCopyPath(roomId, nodeId) {
+  const nodes = _fpLoad(roomId);
+  const buildPath = (id) => {
+    const n = nodes.find(x => x.id === id);
+    if (!n) return "";
+    const parent = n.parentId ? buildPath(n.parentId) : "";
+    return parent ? parent + "/" + n.name : n.name;
+  };
+  const path = buildPath(nodeId);
+  navigator.clipboard.writeText(path).catch(()=>{});
+}
+
+// ── 删除 ──────────────────────────────────────────────────────────────────────
+
+function fpDeleteNode(roomId, nodeId) {
+  const nodes = _fpLoad(roomId);
+  const node  = nodes.find(n => n.id === nodeId);
+  if (!node) return;
+  const label = node.type === "folder" ? `文件夹「${node.name}」及其所有内容` : `文件「${node.name}」`;
+  if (!confirm(`确定删除 ${label}？`)) return;
+  const toDelete = new Set();
+  const collect  = (id) => { toDelete.add(id); nodes.filter(n=>n.parentId===id).forEach(n=>collect(n.id)); };
+  collect(nodeId);
+  if (_fpSelected[roomId] && toDelete.has(_fpSelected[roomId])) delete _fpSelected[roomId];
+  _fpSave(roomId, nodes.filter(n=>!toDelete.has(n.id)));
+  fpRenderTree(roomId);
+  fpClosePreview(roomId);
+}
+
+// ── 主题系统 ──────────────────────────────────────────────────────────────────
+
+const THEME_PRESETS = [
+  {
+    id: "dark-blue", label: "深蓝", swatch: ["#1e293b","#0284c7","#38bdf8"],
+    vars: { "--g800":"#1e293b","--g700":"#334155","--g600":"#475569",
+            "--sky":"#38bdf8","--sky-m":"#7dd3fc","--sky-d":"#0284c7","--sky-dp":"#0369a1",
+            "--text":"#1e293b","--border":"#e2e8f0","--white":"#ffffff","--g50":"#f8fafc" }
+  },
+  {
+    id: "dark-purple", label: "暗紫", swatch: ["#1e1b4b","#7c3aed","#a78bfa"],
+    vars: { "--g800":"#1e1b4b","--g700":"#2e2a6b","--g600":"#4338ca",
+            "--sky":"#a78bfa","--sky-m":"#c4b5fd","--sky-d":"#7c3aed","--sky-dp":"#6d28d9",
+            "--text":"#1e1b4b","--border":"#ddd6fe","--white":"#ffffff","--g50":"#f5f3ff" }
+  },
+  {
+    id: "dark-green", label: "墨绿", swatch: ["#052e16","#16a34a","#4ade80"],
+    vars: { "--g800":"#052e16","--g700":"#14532d","--g600":"#166534",
+            "--sky":"#4ade80","--sky-m":"#86efac","--sky-d":"#16a34a","--sky-dp":"#15803d",
+            "--text":"#052e16","--border":"#bbf7d0","--white":"#ffffff","--g50":"#f0fdf4" }
+  },
+  {
+    id: "dark-rose", label: "玫瑰", swatch: ["#4c0519","#e11d48","#fb7185"],
+    vars: { "--g800":"#4c0519","--g700":"#881337","--g600":"#9f1239",
+            "--sky":"#fb7185","--sky-m":"#fda4af","--sky-d":"#e11d48","--sky-dp":"#be123c",
+            "--text":"#4c0519","--border":"#fecdd3","--white":"#ffffff","--g50":"#fff1f2" }
+  },
+  {
+    id: "slate-gray", label: "石灰", swatch: ["#0f172a","#475569","#94a3b8"],
+    vars: { "--g800":"#0f172a","--g700":"#1e293b","--g600":"#334155",
+            "--sky":"#94a3b8","--sky-m":"#cbd5e1","--sky-d":"#475569","--sky-dp":"#334155",
+            "--text":"#0f172a","--border":"#e2e8f0","--white":"#ffffff","--g50":"#f8fafc" }
+  },
+  {
+    id: "amber", label: "琥珀", swatch: ["#1c0a00","#d97706","#fbbf24"],
+    vars: { "--g800":"#1c0a00","--g700":"#2d1200","--g600":"#78350f",
+            "--sky":"#fbbf24","--sky-m":"#fde68a","--sky-d":"#d97706","--sky-dp":"#b45309",
+            "--text":"#1c0a00","--border":"#fde68a","--white":"#ffffff","--g50":"#fffbeb" }
+  },
+];
+
+const THEME_CUSTOM_VARS = [
+  { label: "侧栏背景", var: "--g800" },
+  { label: "主题色", var: "--sky-d" },
+  { label: "高亮色", var: "--sky" },
+  { label: "页面背景", var: "--g50" },
+];
+
+const DEFAULT_THEME = THEME_PRESETS[0];
+let _activeThemeId = localStorage.getItem("theme-id") || "dark-blue";
+
+function _applyVars(vars) {
+  const root = document.documentElement;
+  for (const [k, v] of Object.entries(vars)) root.style.setProperty(k, v);
+}
+
+function _loadSavedTheme() {
+  const saved = localStorage.getItem("theme-vars");
+  if (saved) {
+    try { _applyVars(JSON.parse(saved)); return; } catch {}
+  }
+  const preset = THEME_PRESETS.find(p => p.id === _activeThemeId) || THEME_PRESETS[0];
+  _applyVars(preset.vars);
+}
+
+function _currentVars() {
+  const root = getComputedStyle(document.documentElement);
+  const out = {};
+  for (const item of THEME_CUSTOM_VARS) out[item.var] = root.getPropertyValue(item.var).trim();
+  // also include all preset-controlled vars
+  for (const v of Object.keys(THEME_PRESETS[0].vars)) {
+    out[v] = root.getPropertyValue(v).trim();
+  }
+  return out;
+}
+
+function openThemePanel() {
+  const panel = document.getElementById("theme-panel");
+  if (panel.style.display !== "none") { closeThemePanel(); return; }
+  _renderThemePresets();
+  _renderThemeCustom();
+  panel.style.display = "";
+}
+
+function closeThemePanel() {
+  document.getElementById("theme-panel").style.display = "none";
+}
+
+function _renderThemePresets() {
+  const el = document.getElementById("theme-presets");
+  el.innerHTML = THEME_PRESETS.map(p => {
+    const active = p.id === _activeThemeId;
+    return `<button onclick="applyPreset('${p.id}')" style="background:${active?'rgba(255,255,255,.12)':'rgba(255,255,255,.04)'};border:1.5px solid ${active?'rgba(255,255,255,.35)':'rgba(255,255,255,.1)'};border-radius:8px;padding:7px 5px;cursor:pointer;transition:all .12s;display:flex;flex-direction:column;align-items:center;gap:5px;">
+      <div style="display:flex;gap:2px;">
+        ${p.swatch.map(c=>`<div style="width:10px;height:10px;border-radius:50%;background:${c};"></div>`).join("")}
+      </div>
+      <div style="font-size:10px;color:#e2e8f0;font-weight:${active?700:400};">${p.label}</div>
+    </button>`;
+  }).join("");
+}
+
+function _renderThemeCustom() {
+  const root = getComputedStyle(document.documentElement);
+  const el = document.getElementById("theme-custom-rows");
+  el.innerHTML = THEME_CUSTOM_VARS.map(item => {
+    const cur = root.getPropertyValue(item.var).trim() || "#000000";
+    return `<div style="display:flex;align-items:center;justify-content:space-between;">
+      <span style="color:#94a3b8;font-size:11px;">${item.label}</span>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <div style="width:20px;height:20px;border-radius:5px;background:${cur};border:1px solid rgba(255,255,255,.15);"></div>
+        <input type="color" value="${_toHex(cur)}" oninput="applyCustomVar('${item.var}', this.value, this.previousElementSibling)"
+          style="width:28px;height:20px;border:none;border-radius:5px;cursor:pointer;padding:0;background:transparent;" />
+      </div>
+    </div>`;
+  }).join("");
+}
+
+function _toHex(color) {
+  // Convert named/rgb to hex via a temp div
+  const d = document.createElement("div");
+  d.style.color = color;
+  document.body.appendChild(d);
+  const c = getComputedStyle(d).color;
+  document.body.removeChild(d);
+  const m = c.match(/\d+/g);
+  if (!m) return "#000000";
+  return "#" + m.slice(0,3).map(n => parseInt(n).toString(16).padStart(2,"0")).join("");
+}
+
+function applyPreset(id) {
+  const preset = THEME_PRESETS.find(p => p.id === id);
+  if (!preset) return;
+  _activeThemeId = id;
+  _applyVars(preset.vars);
+  localStorage.setItem("theme-id", id);
+  localStorage.setItem("theme-vars", JSON.stringify(preset.vars));
+  _renderThemePresets();
+  _renderThemeCustom();
+}
+
+function applyCustomVar(cssVar, value, swatchEl) {
+  document.documentElement.style.setProperty(cssVar, value);
+  if (swatchEl) swatchEl.style.background = value;
+  // persist merged vars
+  const saved = {};
+  for (const v of Object.keys(THEME_PRESETS[0].vars)) {
+    saved[v] = getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+  }
+  saved[cssVar] = value;
+  localStorage.setItem("theme-vars", JSON.stringify(saved));
+  _activeThemeId = "custom";
+  _renderThemePresets();
+}
+
+function resetTheme() {
+  localStorage.removeItem("theme-vars");
+  localStorage.removeItem("theme-id");
+  _activeThemeId = "dark-blue";
+  // clear all inline overrides
+  for (const v of Object.keys(THEME_PRESETS[0].vars)) {
+    document.documentElement.style.removeProperty(v);
+  }
+  _applyVars(THEME_PRESETS[0].vars);
+  _renderThemePresets();
+  _renderThemeCustom();
+}
+
+// close panel when clicking outside
+document.addEventListener("click", e => {
+  const panel = document.getElementById("theme-panel");
+  if (panel && panel.style.display !== "none") {
+    if (!panel.contains(e.target) && !e.target.closest("[onclick='openThemePanel()']")) {
+      closeThemePanel();
+    }
+  }
+});
+
+// ── 初始化 ────────────────────────────────────────────────────────────────────
+_loadSavedTheme();
+loadAll();
 </script>
 </body>
 </html>
